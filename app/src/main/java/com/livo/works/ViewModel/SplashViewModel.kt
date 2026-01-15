@@ -17,46 +17,64 @@ import javax.inject.Inject
 class SplashViewModel @Inject constructor(
     private val tokenManager: TokenManager,
     private val sharedPreferences: SharedPreferences,
-    private val repository: AuthRepository
+    private val authRepository: AuthRepository
 ) : ViewModel() {
 
     private val _destination = MutableStateFlow<String?>(null)
     val destination = _destination.asStateFlow()
 
     init {
-        decideNextScreen()
+        determineNavigationDestination()
     }
 
-    private fun decideNextScreen() {
+    private fun determineNavigationDestination() {
         viewModelScope.launch {
-            // 1. Branding Delay (1 second)
-            delay(1000)
+            delay(SPLASH_DISPLAY_DURATION)
 
-            // 2. Read Local State
-            val isFirstTime = sharedPreferences.getBoolean("is_first_time", true)
-            val refreshToken = tokenManager.getRefreshToken()
-
-            Log.d("LIVO_SPLASH", "FirstTime: $isFirstTime, HasRefreshToken: ${!refreshToken.isNullOrEmpty()}")
-
-            val target = when {
-                // CASE A: Fresh Install -> Onboarding
-                isFirstTime -> "ONBOARDING"
-
-                // CASE B: User logged out manually (Token is null/empty)
-                // STRICT RULE: Do NOT hit network. Go straight to Login.
-                refreshToken.isNullOrEmpty() -> "LOGIN"
-
-                // CASE C: User has a session (Refresh token exists)
-                // ACTION: Validate session with backend (Silent Refresh)
-                else -> {
-                    Log.d("LIVO_SPLASH", "Token found. Verifying session...")
-                    // If refresh works, user goes to Dashboard.
-                    // If refresh fails (e.g., token revoked), user goes to Login.
-                    val isSessionValid = repository.performSilentRefresh()
-                    if (isSessionValid) "DASHBOARD" else "LOGIN"
-                }
+            val destination = when {
+                isFirstTimeUser() -> DESTINATION_ONBOARDING
+                !hasValidSession() -> DESTINATION_LOGIN
+                isSessionValid() -> DESTINATION_DASHBOARD
+                else -> DESTINATION_LOGIN
             }
-            _destination.value = target
+
+            Log.d(TAG, "Navigation destination determined: $destination")
+            _destination.value = destination
         }
+    }
+
+    private fun isFirstTimeUser(): Boolean {
+        return sharedPreferences.getBoolean(PREF_IS_FIRST_TIME, true)
+    }
+
+    private fun hasValidSession(): Boolean {
+        val hasRefreshToken = !tokenManager.getRefreshToken().isNullOrEmpty()
+        Log.d(TAG, "Session check - Has refresh token: $hasRefreshToken")
+        return hasRefreshToken
+    }
+
+    private suspend fun isSessionValid(): Boolean {
+        Log.d(TAG, "Validating session with server...")
+
+        val isValid = authRepository.performSilentRefresh()
+
+        if (isValid) {
+            Log.d(TAG, "Session validation successful")
+        } else {
+            Log.w(TAG, "Session validation failed - user needs to login")
+        }
+
+        return isValid
+    }
+
+    companion object {
+        private const val TAG = "SplashViewModel"
+        private const val PREF_IS_FIRST_TIME = "is_first_time"
+        private const val SPLASH_DISPLAY_DURATION = 2000L
+
+        // Navigation destinations
+        const val DESTINATION_ONBOARDING = "ONBOARDING"
+        const val DESTINATION_LOGIN = "LOGIN"
+        const val DESTINATION_DASHBOARD = "DASHBOARD"
     }
 }

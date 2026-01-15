@@ -15,25 +15,27 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class Splash : AppCompatActivity() {
 
-    // Hilt delivers the ViewModel here
     private val viewModel: SplashViewModel by viewModels()
+    private var hasNavigated = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        // Handle the splash screen transition
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // Keep splash screen on-screen until destination is decided
-        splashScreen.setKeepOnScreenCondition { true }
+        splashScreen.setKeepOnScreenCondition { !hasNavigated }
 
         observeDestination()
     }
 
     private fun observeDestination() {
         lifecycleScope.launch {
-            viewModel.destination.collect { target ->
+            viewModel.destination.collectLatest { target ->
+                if (hasNavigated) return@collectLatest
+
                 target?.let {
+                    hasNavigated = true
+
                     val intent = when (it) {
                         "ONBOARDING" -> Intent(this@Splash, Onboarding::class.java)
                         "LOGIN" -> Intent(this@Splash, Login::class.java)

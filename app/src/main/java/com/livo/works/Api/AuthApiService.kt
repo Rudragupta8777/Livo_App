@@ -14,19 +14,20 @@ interface AuthApiService {
     @POST("api/v1/auth/signup/complete")
     suspend fun signupComplete(@Body request: OtpRequest): Response<ApiResponse<UserData>>
 
+    @POST("api/v1/auth/signup/resend-otp")
+    suspend fun resendOtp(
+        @Body request: Map<String, String>
+    ): Response<ApiResponse<ResendResponse>>
+
     @POST("api/v1/auth/login")
     suspend fun login(@Body request: LoginRequest): Response<ApiResponse<LoginResponse>>
 
-    // FIXED: Now uses 'x-refresh-token' header
-    // The 'Authorization' header is added automatically by OkHttp Interceptor
     @POST("api/v1/auth/logout")
     suspend fun logout(
         @Header("x-refresh-token") refreshToken: String,
         @Body request: LoginRequest
     ): Response<ApiResponse<String>>
 
-    // Keeping 'refreshtoken' here based on your earlier route #6 description
-    // (If this should also be x-refresh-token, change it here too)
     @POST("api/v1/auth/refresh")
     fun refreshToken(
         @Header("x-refresh-token") refreshToken: String

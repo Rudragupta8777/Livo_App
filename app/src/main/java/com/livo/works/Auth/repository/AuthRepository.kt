@@ -13,7 +13,7 @@ import javax.inject.Inject
 
 class AuthRepository @Inject constructor(
     private val api: AuthApiService,
-    private val tokenManager: TokenManager // Fixed: Added injection here
+    private val tokenManager: TokenManager
 ) {
 
     suspend fun signupInitiate(name: String, email: String, pass: String) = flow {
@@ -28,33 +28,54 @@ class AuthRepository @Inject constructor(
     }
 
     suspend fun performSilentRefresh(): Boolean = withContext(Dispatchers.IO) {
-        val oldRefresh = tokenManager.getRefreshToken() ?: return@withContext false
-        Log.d("LIVO_AUTH", "Attempting Silent Refresh with: $oldRefresh")
+        val refreshToken = tokenManager.getRefreshToken()
+
+        if (refreshToken.isNullOrEmpty()) {
+            Log.w(TAG, "No refresh token available for silent refresh")
+            return@withContext false
+        }
+
+        Log.d(TAG, "Performing silent token refresh")
 
         return@withContext try {
-            val response = api.refreshToken(oldRefresh).execute()
-            if (response.isSuccessful && response.body()?.data != null) {
-                val newData = response.body()!!.data!!
+            val response = api.refreshToken(refreshToken).execute()
 
-                // Save new tokens
-                tokenManager.saveAuthData(
-                    newData.accessToken,
-                    newData.refreshToken,
-                    tokenManager.getEmail(),
-                    tokenManager.getPassword()
-                )
+            when {
+                response.isSuccessful && response.body()?.data != null -> {
+                    val newTokens = response.body()!!.data!!
 
-                Log.d("LIVO_AUTH", "Refresh Success! New Access: ${newData.accessToken}")
-                Log.d("LIVO_AUTH", "New Refresh: ${newData.refreshToken}")
-                true
-            } else {
-                Log.e("LIVO_AUTH", "Refresh Failed: ${response.code()}")
-                false
+                    tokenManager.saveAuthData(
+                        newTokens.accessToken,
+                        newTokens.refreshToken,
+                        tokenManager.getEmail(),
+                        tokenManager.getPassword()
+                    )
+
+                    Log.d(TAG, "Silent refresh successful")
+                    true
+                }
+
+                response.code() in 400..499 -> {
+                    // Client error - token is invalid/revoked
+                    Log.e(TAG, "Silent refresh failed: ${response.code()} - ${response.message()}")
+                    tokenManager.clear()
+                    false
+                }
+
+                else -> {
+                    // Server error - don't clear tokens
+                    Log.e(TAG, "Silent refresh server error: ${response.code()}")
+                    false
+                }
             }
         } catch (e: Exception) {
-            Log.e("LIVO_AUTH", "Network Error during refresh: ${e.message}")
+            Log.e(TAG, "Silent refresh network error: ${e.message}")
             false
         }
+    }
+
+    companion object {
+        private const val TAG = "AuthRepository"
     }
 
     suspend fun verifyOtp(regId: String, otp: String) = flow {
@@ -73,6 +94,28 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun resendOtp(regId: String) = flow {
+        emit(UiState.Loading)
+        try {
+            val requestBody = mapOf("registrationId" to regId)
+            val response = api.resendOtp(requestBody)
+
+            if (response.isSuccessful && response.body()?.data != null) {
+                emit(UiState.Success(response.body()?.data))
+            } else {
+                val errorMsg = response.body()?.error?.message ?: "Resend Failed"
+
+                if (response.code() == 401 || response.code() == 429 || response.code() == 403) {
+                    emit(UiState.SessionExpired)
+                } else {
+                    emit(UiState.Error(errorMsg))
+                }
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error(e.message ?: "Network Error"))
+        }
+    }
+
     suspend fun loginUser(email: String, pass: String): Flow<UiState<LoginResponse>> = flow {
         emit(UiState.Loading)
         try {
@@ -81,7 +124,6 @@ class AuthRepository @Inject constructor(
                 val loginData = response.body()!!.data!!
 
                 // SAVE TOKENS AND CREDENTIALS
-                // Your friend's logout route needs email/pass in the body
                 tokenManager.saveAuthData(
                     loginData.accessToken,
                     loginData.refreshToken,
@@ -91,7 +133,6 @@ class AuthRepository @Inject constructor(
 
                 emit(UiState.Success(loginData))
             } else {
-                // Get error message from the backend response
                 val errorMsg = response.body()?.error?.message ?: "Invalid credentials"
                 emit(UiState.Error(errorMsg))
             }
@@ -120,7 +161,6 @@ class AuthRepository @Inject constructor(
                 emit(UiState.Error("Logout failed, but local session cleared"))
             }
         } catch (e: Exception) {
-            // Network error? Force clear anyway.
             tokenManager.clear()
             emit(UiState.Error("Network error: Local session cleared"))
         }
