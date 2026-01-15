@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Livo</string>
+
+
+    <string name="default_create_acc">Don’t have an account?</string>
+    <string name="create_acc">Create Account</string>
+</resources>
