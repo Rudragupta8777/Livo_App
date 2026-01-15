@@ -30,20 +30,23 @@ class AuthRepository @Inject constructor(
     suspend fun performSilentRefresh(): Boolean = withContext(Dispatchers.IO) {
         val refreshToken = tokenManager.getRefreshToken()
 
+        // No refresh token means user is not logged in
         if (refreshToken.isNullOrEmpty()) {
-            Log.w(TAG, "No refresh token available for silent refresh")
+            Log.w(TAG, "performSilentRefresh: No refresh token available")
             return@withContext false
         }
 
-        Log.d(TAG, "Performing silent token refresh")
+        Log.d(TAG, "performSilentRefresh: Starting with token: ${refreshToken.take(20)}...")
 
         return@withContext try {
             val response = api.refreshToken(refreshToken).execute()
 
             when {
+                // Success: Got new tokens
                 response.isSuccessful && response.body()?.data != null -> {
                     val newTokens = response.body()!!.data!!
 
+                    // Save new tokens
                     tokenManager.saveAuthData(
                         newTokens.accessToken,
                         newTokens.refreshToken,
@@ -51,25 +54,31 @@ class AuthRepository @Inject constructor(
                         tokenManager.getPassword()
                     )
 
-                    Log.d(TAG, "Silent refresh successful")
+                    Log.d(TAG, "✅ performSilentRefresh: SUCCESS - New tokens saved")
                     true
                 }
 
+                // Client error (4xx) - Token is invalid/expired/revoked
                 response.code() in 400..499 -> {
-                    // Client error - token is invalid/revoked
-                    Log.e(TAG, "Silent refresh failed: ${response.code()} - ${response.message()}")
+                    Log.e(TAG, "❌ performSilentRefresh: FAILED - Status ${response.code()}")
+                    Log.e(TAG, "Token is invalid/expired. Clearing local session.")
+
+                    // Clear invalid tokens so user can login fresh
                     tokenManager.clear()
                     false
                 }
 
+                // Server error (5xx) - Don't clear tokens, might be temporary
                 else -> {
-                    // Server error - don't clear tokens
-                    Log.e(TAG, "Silent refresh server error: ${response.code()}")
+                    Log.e(TAG, "⚠️ performSilentRefresh: Server error ${response.code()}")
+                    Log.e(TAG, "Keeping tokens, server might be temporarily down")
                     false
                 }
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Silent refresh network error: ${e.message}")
+            Log.e(TAG, "❌ performSilentRefresh: Network exception - ${e.message}")
+            Log.e(TAG, "Keeping tokens, network might be temporarily unavailable")
+            // Don't clear tokens on network errors - user might just be offline
             false
         }
     }

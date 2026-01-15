@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Livo</string>
-
-
+    <string name="splash_screen_message">Your Perfect Stay, Just a Tap Away.</string>
+    <string name="on_boarding_btn_text">Get Started</string>
     <string name="default_create_acc">Don’t have an account?</string>
     <string name="create_acc">Create Account</string>
 </resources>

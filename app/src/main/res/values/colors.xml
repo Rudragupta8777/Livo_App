@@ -6,6 +6,12 @@
 
 
 
+    <color name="screen_background">#FFFFFF</color>
+    <color name="text_primary">#6B0BE8</color>
     <color name="teal_500">#004643</color>
     <color name="gray_800">#FF424242</color>
+
+
+    <color name="on_boarding_description">#666666</color>
+    <color name="dot_indicator_inactive">#CCCCCC</color>
 </resources>
