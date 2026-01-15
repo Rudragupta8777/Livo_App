@@ -7,4 +7,6 @@
 
     <color name="on_boarding_description">#B4B4B4</color>
     <color name="dot_indicator_inactive">#CCCCCC</color>
+
+    <color name="login_input_box">#767676</color>
 </resources>

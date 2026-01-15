@@ -1,77 +1,165 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
-    android:padding="24dp"
-    android:gravity="center_horizontal"
-    android:background="@color/white">
+    android:background="@color/screen_background"
+    android:padding="24dp">
+
+    <ImageView
+        android:id="@+id/ivLockIcon"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginTop="60dp"
+        android:src="@android:drawable/ic_lock_idle_lock"
+        app:tint="@color/text_primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
+        android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
-        android:text="Verify Email"
-        android:textSize="24sp"
+        android:layout_marginTop="24dp"
         android:fontFamily="sans-serif-black"
-        android:textColor="#1A1A1A"/>
+        android:text="Verification Code"
+        android:textColor="@color/black"
+        android:textSize="28sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/ivLockIcon" />
 
     <TextView
         android:id="@+id/tvSubtitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Enter the code sent to your email"
-        android:textColor="#666666"/>
+        android:gravity="center"
+        android:text="We have sent the code verification to\nyour email address"
+        android:textColor="@color/on_boarding_description"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
 
-    <com.google.android.material.textfield.TextInputLayout
-        style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
-        android:layout_width="200dp"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/otpContainer"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="40dp"
-        android:hint="OTP Code">
+        app:layout_constraintTop_toBottomOf="@+id/tvSubtitle">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/etOtp"
+        <LinearLayout
+            android:id="@+id/llOtpBoxes"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <TextView android:id="@+id/otpBox1" style="@style/OtpBoxStyle" />
+            <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/otpBox2" style="@style/OtpBoxStyle" />
+            <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/otpBox3" style="@style/OtpBoxStyle" />
+            <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/otpBox4" style="@style/OtpBoxStyle" />
+            <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/otpBox5" style="@style/OtpBoxStyle" />
+            <Space android:layout_width="8dp" android:layout_height="wrap_content" />
+            <TextView android:id="@+id/otpBox6" style="@style/OtpBoxStyle" />
+        </LinearLayout>
+
+        <EditText
+            android:id="@+id/etHiddenOtp"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:background="@null"
+            android:cursorVisible="false"
             android:inputType="number"
             android:maxLength="6"
-            android:letterSpacing="0.2"
-            android:gravity="center"/>
-    </com.google.android.material.textfield.TextInputLayout>
+            android:textColor="@android:color/transparent"
+            app:layout_constraintBottom_toBottomOf="@+id/llOtpBoxes"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/llOtpBoxes" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <FrameLayout
+        android:id="@+id/timerLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/otpContainer">
+
+        <ProgressBar
+            android:id="@+id/pbTimer"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            android:progressDrawable="@drawable/circular_progress"
+            android:progress="100"
+            android:max="100" />
+        <TextView
+            android:id="@+id/tvTimer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="00:45"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"/>
+    </FrameLayout>
 
     <TextView
-        android:id="@+id/tvTimer"
+        android:id="@+id/tvResendBtn"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:text="Resend code in 00:45"
-        android:textColor="#666666"/>
-
-    <Button
-        android:id="@+id/btnResend"
-        style="@style/Widget.Material3.Button.TextButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
         android:text="Resend Code"
-        android:enabled="false"
-        android:textColor="@color/black"/>
+        android:textColor="@color/text_primary"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:padding="8dp"
+        android:visibility="gone"
+        android:background="?attr/selectableItemBackground"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/otpContainer" />
+
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnVerify"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:layout_marginTop="32dp"
-        android:text="Verify"
-        app:cornerRadius="12dp"/>
+        android:layout_marginTop="25dp"
+        android:backgroundTint="@color/text_primary"
+        android:text="Verify Now"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/timerLayout" />
 
     <ProgressBar
         android:id="@+id/progressBar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        android:visibility="gone"/>
+        android:indeterminateTint="@color/text_primary"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
