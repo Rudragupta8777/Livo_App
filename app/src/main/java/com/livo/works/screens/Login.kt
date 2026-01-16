@@ -133,7 +133,8 @@ class Login : AppCompatActivity() {
         // Forgot Password
         tvForgotPassword.setOnClickListener {
             animateButtonClick(tvForgotPassword)
-            Toast.makeText(this, "Forgot password feature coming soon!", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, ForgotPassword::class.java)
+            startActivity(intent)
         }
     }
 

@@ -144,6 +144,59 @@ class AuthRepository @Inject constructor(
         }
     }
 
+    suspend fun initiateForgotPassword(email: String) = flow {
+        emit(UiState.Loading)
+        try {
+            val response = api.forgotPwdInitiate(ForgotPwdInitiateRequest(email))
+            if (response.isSuccessful && response.body()?.data != null) {
+                emit(UiState.Success(response.body()?.data))
+            } else {
+                val errorMsg = response.body()?.error?.message ?: "Request Failed"
+                emit(UiState.Error(errorMsg))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error("Network Error"))
+        }
+    }
+
+    suspend fun completeResetPassword(regId: String, otp: String, newPass: String) = flow {
+        emit(UiState.Loading)
+        try {
+            val response = api.forgotPwdComplete(ForgotPwdCompleteRequest(regId, otp, newPass))
+
+            if (response.isSuccessful) {
+                emit(UiState.Success("Password reset successfully"))
+            } else {
+                val errorMsg = response.body()?.error?.message ?: "Reset Failed"
+
+                // CHECK FOR 401 UNAUTHORIZED
+                if (response.code() == 401) {
+                    emit(UiState.SessionExpired)
+                } else {
+                    // 400 Bad Request or others
+                    emit(UiState.Error(errorMsg))
+                }
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error("Network Error"))
+        }
+    }
+
+    suspend fun resendForgotOtp(regId: String) = flow {
+        emit(UiState.Loading)
+        try {
+            val response = api.forgotPwdResend(mapOf("registrationId" to regId))
+            if (response.isSuccessful && response.body()?.data != null) {
+                emit(UiState.Success(response.body()?.data))
+            } else {
+                val errorMsg = response.body()?.error?.message ?: "Resend Failed"
+                emit(UiState.Error(errorMsg))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error("Network Error"))
+        }
+    }
+
     suspend fun logoutUser() = flow {
         emit(UiState.Loading)
         try {

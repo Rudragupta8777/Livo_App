@@ -31,4 +31,19 @@ interface AuthApiService {
     fun refreshToken(
         @Header("x-refresh-token") refreshToken: String
     ): Call<ApiResponse<LoginResponse>>
+
+    @POST("api/v1/auth/forgot-pwd/initiate")
+    suspend fun forgotPwdInitiate(
+        @Body request: ForgotPwdInitiateRequest
+    ): Response<ApiResponse<ForgotPwdInitiateResponse>>
+
+    @POST("api/v1/auth/forgot-pwd/complete")
+    suspend fun forgotPwdComplete(
+        @Body request: ForgotPwdCompleteRequest
+    ): Response<ApiResponse<ForgotPwdCompleteResponse>>
+
+    @POST("api/v1/auth/forgot-pwd/resend-otp")
+    suspend fun forgotPwdResend(
+        @Body request: Map<String, String>
+    ): Response<ApiResponse<ResendResponse>>
 }
