@@ -4,11 +4,13 @@ import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.FrameLayout
@@ -19,7 +21,9 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.lifecycle.lifecycleScope
+import com.airbnb.lottie.LottieAnimationView
 import com.google.android.material.button.MaterialButton
 import com.livo.works.R
 import com.livo.works.ViewModel.OtpViewModel
@@ -33,6 +37,7 @@ class OtpVerification : AppCompatActivity() {
 
     private val viewModel: OtpViewModel by viewModels()
     private var registrationId: String? = null
+    private lateinit var otpMainContent: ConstraintLayout
     private lateinit var ivLockIcon: ImageView
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
@@ -41,14 +46,19 @@ class OtpVerification : AppCompatActivity() {
     private lateinit var pbTimer: ProgressBar
     private lateinit var tvResendBtn: TextView
     private lateinit var btnVerify: MaterialButton
-    private lateinit var progressBar: ProgressBar
-    private lateinit var otpContainer: View // For shaking the whole container
-
-    // OTP Input
+    private lateinit var otpContainer: View
     private lateinit var etHiddenOtp: EditText
     private val otpBoxes = ArrayList<TextView>()
 
-    // State tracking
+    // Success Animation Views
+    private lateinit var successContainer: ConstraintLayout
+    private lateinit var lottieSuccess: LottieAnimationView
+    private lateinit var tvSuccessTitle: TextView
+    private lateinit var tvSuccessMessage: TextView
+    private lateinit var btnContinueToLogin: MaterialButton
+
+    // Sound Player
+    private var mediaPlayer: MediaPlayer? = null
     private var isErrorState = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,17 +75,21 @@ class OtpVerification : AppCompatActivity() {
         setupClickListeners()
         observeStates()
 
-        // Start Timer
         viewModel.startTimer(nextResendAt)
-
         runEntranceAnimations()
 
-        // Show Keyboard immediately
         etHiddenOtp.requestFocus()
         showKeyboard()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
     private fun initializeViews() {
+        otpMainContent = findViewById(R.id.otpMainContent)
         ivLockIcon = findViewById(R.id.ivLockIcon)
         tvTitle = findViewById(R.id.tvTitle)
         tvSubtitle = findViewById(R.id.tvSubtitle)
@@ -84,17 +98,21 @@ class OtpVerification : AppCompatActivity() {
         pbTimer = findViewById(R.id.pbTimer)
         tvResendBtn = findViewById(R.id.tvResendBtn)
         btnVerify = findViewById(R.id.btnVerify)
-        progressBar = findViewById(R.id.progressBar)
         etHiddenOtp = findViewById(R.id.etHiddenOtp)
         otpContainer = findViewById(R.id.otpContainer)
 
-        // Bind the 6 boxes
         otpBoxes.add(findViewById(R.id.otpBox1))
         otpBoxes.add(findViewById(R.id.otpBox2))
         otpBoxes.add(findViewById(R.id.otpBox3))
         otpBoxes.add(findViewById(R.id.otpBox4))
         otpBoxes.add(findViewById(R.id.otpBox5))
         otpBoxes.add(findViewById(R.id.otpBox6))
+
+        successContainer = findViewById(R.id.successContainer)
+        lottieSuccess = findViewById(R.id.lottieSuccess)
+        tvSuccessTitle = findViewById(R.id.tvSuccessTitle)
+        tvSuccessMessage = findViewById(R.id.tvSuccessMessage)
+        btnContinueToLogin = findViewById(R.id.btnContinueToLogin)
 
         val email = intent.getStringExtra("EMAIL")
         if (email != null) {
@@ -104,7 +122,7 @@ class OtpVerification : AppCompatActivity() {
         timerLayout.visibility = View.VISIBLE
         tvResendBtn.visibility = View.GONE
 
-        // Prepare animations
+        // Initial Alpha for animations
         ivLockIcon.alpha = 0f
         tvTitle.alpha = 0f
         tvSubtitle.alpha = 0f
@@ -120,21 +138,19 @@ class OtpVerification : AppCompatActivity() {
             override fun afterTextChanged(s: Editable?) {
                 val text = s.toString()
 
-                // 1. Reset Error State if user types
                 if (isErrorState) {
                     resetOtpBoxVisuals()
                 }
 
-                // 2. Update boxes based on hidden input
                 for (i in otpBoxes.indices) {
                     if (i < text.length) {
                         otpBoxes[i].text = text[i].toString()
-                        otpBoxes[i].isSelected = true   // Filled
+                        otpBoxes[i].isSelected = true
                         otpBoxes[i].isActivated = false
                     } else if (i == text.length) {
                         otpBoxes[i].text = ""
                         otpBoxes[i].isSelected = false
-                        otpBoxes[i].isActivated = true  // Cursor
+                        otpBoxes[i].isActivated = true
                     } else {
                         otpBoxes[i].text = ""
                         otpBoxes[i].isSelected = false
@@ -142,7 +158,6 @@ class OtpVerification : AppCompatActivity() {
                     }
                 }
 
-                // Removed Auto-Click Logic here as requested
                 if (text.length == 6) {
                     hideKeyboard()
                 }
@@ -153,13 +168,10 @@ class OtpVerification : AppCompatActivity() {
     private fun setupClickListeners() {
         btnVerify.setOnClickListener {
             val otp = etHiddenOtp.text.toString()
-
-            // Check length
             if (otp.length == 6 && registrationId != null) {
                 animateButtonClick(btnVerify)
                 viewModel.verifyOtp(registrationId!!, otp)
             } else {
-                // Shake if empty or incomplete
                 showErrorVisuals()
                 Toast.makeText(this, "Please enter full 6-digit code", Toast.LENGTH_SHORT).show()
             }
@@ -176,24 +188,29 @@ class OtpVerification : AppCompatActivity() {
             etHiddenOtp.requestFocus()
             showKeyboard()
         }
+
+        btnContinueToLogin.setOnClickListener {
+            animateButtonClick(btnContinueToLogin)
+            lifecycleScope.launch {
+                delay(200)
+                navigateToLogin()
+            }
+        }
     }
 
     private fun observeStates() {
-        // 1. Verify State
         lifecycleScope.launch {
             viewModel.verifyState.collect { state ->
                 handleUiState(state, isVerifyAction = true)
             }
         }
 
-        // 2. Resend State
         lifecycleScope.launch {
             viewModel.resendState.collect { state ->
                 handleUiState(state, isVerifyAction = false)
             }
         }
 
-        // 3. Timer State (With Progress Bar Logic)
         lifecycleScope.launch {
             viewModel.timerState.collect { timeString ->
                 if (timeString == "Resend Available" || timeString == "00:00") {
@@ -201,11 +218,8 @@ class OtpVerification : AppCompatActivity() {
                         crossFadeViews(timerLayout, tvResendBtn)
                     }
                 } else {
-                    // timeString format: "Resend code in 00:45"
                     val cleanTime = timeString.replace("Resend code in ", "")
                     tvTimer.text = cleanTime
-
-                    // CALCULATE PROGRESS
                     updateTimerProgress(cleanTime)
 
                     if (timerLayout.visibility != View.VISIBLE) {
@@ -217,17 +231,12 @@ class OtpVerification : AppCompatActivity() {
     }
 
     private fun updateTimerProgress(time: String) {
-        // Parse "MM:SS" (e.g., "00:45")
         try {
             val parts = time.split(":")
             if (parts.size == 2) {
                 val seconds = parts[0].toInt() * 60 + parts[1].toInt()
-                // Assuming max timer is 60 seconds (or logic in VM).
-                // We map 60s -> 100 progress, 0s -> 0 progress
                 val maxSeconds = 60f
                 val progress = ((seconds / maxSeconds) * 100).toInt()
-
-                // Animate the progress change
                 pbTimer.setProgress(progress, true)
             }
         } catch (e: Exception) {
@@ -238,7 +247,6 @@ class OtpVerification : AppCompatActivity() {
     private fun handleUiState(state: UiState<*>, isVerifyAction: Boolean) {
         when (state) {
             is UiState.Loading -> {
-                progressBar.visibility = View.VISIBLE
                 if (isVerifyAction) {
                     btnVerify.text = ""
                     btnVerify.isEnabled = false
@@ -248,9 +256,8 @@ class OtpVerification : AppCompatActivity() {
                 }
             }
             is UiState.Success -> {
-                progressBar.visibility = View.GONE
                 if (isVerifyAction) {
-                    animateSuccess()
+                    showSuccessAnimation()
                 } else {
                     Toast.makeText(this, "Code sent!", Toast.LENGTH_SHORT).show()
                     tvResendBtn.isEnabled = true
@@ -259,20 +266,14 @@ class OtpVerification : AppCompatActivity() {
                 }
             }
             is UiState.SessionExpired -> {
-                // Handle 401/403 from Backend
                 redirectToSignup("Session Expired")
             }
             is UiState.Error -> {
-                progressBar.visibility = View.GONE
-
-                // --- FIX: Check for Limit/Max errors here ---
                 val msg = state.message.lowercase()
                 if (msg.contains("limit") || msg.contains("maximum") || msg.contains("exceeded")) {
-                    redirectToSignup(state.message) // Pass the actual error ("Limit reached")
+                    redirectToSignup(state.message)
                     return
                 }
-                // ---------------------------------------------
-
                 if (isVerifyAction) {
                     btnVerify.text = "Verify Now"
                     btnVerify.isEnabled = true
@@ -287,33 +288,108 @@ class OtpVerification : AppCompatActivity() {
         }
     }
 
-    // Helper function to avoid code duplication
-    private fun redirectToSignup(reason: String) {
-        progressBar.visibility = View.GONE
-        Toast.makeText(this, "$reason. Please Signup again.", Toast.LENGTH_LONG).show()
+    // ============ FIXED TIMING LOGIC ============
+    private fun showSuccessAnimation() {
+        hideKeyboard()
 
+        lifecycleScope.launch {
+            // 1. Fade out OTP content
+            animateOutOtpContent()
+
+            // 2. Wait for Fade out to finish
+            delay(400)
+
+            // 3. Show container
+            successContainer.visibility = View.VISIBLE
+            successContainer.alpha = 1f
+
+            // 4. Play Sound & Animation TOGETHER
+            try {
+                if (mediaPlayer == null) {
+                    mediaPlayer = MediaPlayer.create(this@OtpVerification, R.raw.sound_success)
+                }
+                mediaPlayer?.start()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            lottieSuccess.playAnimation()
+
+            // 5. Wait for Lottie to finish before showing Text
+            delay(lottieSuccess.duration)
+            animateSuccessText()
+        }
+    }
+
+    private fun animateOutOtpContent() {
+        otpMainContent.animate()
+            .alpha(0f)
+            .translationY(-100f)
+            .setDuration(400)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+    }
+
+    private fun animateSuccessText() {
+        // Title slide up
+        tvSuccessTitle.translationY = 30f
+        tvSuccessTitle.animate()
+            .alpha(1f)
+            .translationY(0f)
+            .setDuration(400)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+
+        lifecycleScope.launch {
+            delay(150)
+            // Message fade in
+            tvSuccessMessage.animate()
+                .alpha(1f)
+                .setDuration(400)
+                .start()
+
+            delay(200)
+            // Button scale in
+            btnContinueToLogin.scaleX = 0.8f
+            btnContinueToLogin.scaleY = 0.8f
+            btnContinueToLogin.animate()
+                .alpha(1f)
+                .scaleX(1f)
+                .scaleY(1f)
+                .setDuration(500)
+                .setInterpolator(OvershootInterpolator())
+                .start()
+        }
+    }
+
+    // ============ HELPER METHODS ============
+    private fun redirectToSignup(reason: String) {
+        Toast.makeText(this, "$reason. Please Signup again.", Toast.LENGTH_LONG).show()
         val intent = Intent(this, Signup::class.java)
-        // Clear the back stack so they can't go back to OTP screen
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
     }
 
+    private fun navigateToLogin() {
+        val intent = Intent(this, Login::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+    }
+
     private fun showErrorVisuals() {
         isErrorState = true
-        // 1. Change background to RED
         otpBoxes.forEach { box ->
             box.setBackgroundResource(R.drawable.bg_otp_box_error)
         }
-        // 2. Shake the container
         shakeView(otpContainer)
     }
 
     private fun resetOtpBoxVisuals() {
         isErrorState = false
-        // Reset to original selector (handles focus/filled states)
         otpBoxes.forEach { box ->
-            box.setBackgroundResource(R.drawable.bg_otp_box_selector) // Make sure this matches your original drawable name
+            box.setBackgroundResource(R.drawable.bg_otp_box_selector)
         }
     }
 
@@ -354,29 +430,6 @@ class OtpVerification : AppCompatActivity() {
             playSequentially(scaleDown, scaleUp)
             duration = 100
             start()
-        }
-    }
-
-    private fun animateSuccess() {
-        // Success Animation
-        AnimatorSet().apply {
-            playTogether(
-                ObjectAnimator.ofFloat(btnVerify, "scaleX", 1f, 1.1f, 1f),
-                ObjectAnimator.ofFloat(btnVerify, "scaleY", 1f, 1.1f, 1f)
-            )
-            duration = 300
-            interpolator = AccelerateDecelerateInterpolator()
-            start()
-        }
-
-        lifecycleScope.launch {
-            Toast.makeText(this@OtpVerification, "Verification Successful!", Toast.LENGTH_SHORT).show()
-            delay(500)
-            val intent = Intent(this@OtpVerification, Login::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            finish()
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
     }
 
