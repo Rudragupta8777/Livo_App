@@ -127,15 +127,10 @@ class Signup : AppCompatActivity() {
             }
         }
 
-        // Login Text Link
         tvLogin.setOnClickListener {
-            // Navigate back to Login
             val intent = Intent(this, Login::class.java)
-            // Clear top ensures if we came from Login, we don't stack multiple Login activities
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             startActivity(intent)
-            finish() // Close Signup
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
         }
     }
 

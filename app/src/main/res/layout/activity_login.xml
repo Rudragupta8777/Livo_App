@@ -21,6 +21,7 @@
             android:letterSpacing="0.02"
             android:text="Welcome Back"
             android:layout_marginTop="106dp"
+            android:textAlignment="center"
             android:textColor="@color/black"
             android:textSize="32sp"
             app:layout_constraintEnd_toEndOf="parent"

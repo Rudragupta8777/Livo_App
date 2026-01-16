@@ -30,11 +30,8 @@ import javax.inject.Inject
 class Login : AppCompatActivity() {
 
     private val viewModel: LoginViewModel by viewModels()
-
     @Inject
     lateinit var sharedPreferences: SharedPreferences
-
-    // Views
     private lateinit var tvWelcome: TextView
     private lateinit var tvSubtitle: TextView
     private lateinit var tilEmail: TextInputLayout
@@ -82,6 +79,8 @@ class Login : AppCompatActivity() {
         tilEmail.alpha = 0f
         tilPassword.alpha = 0f
         btnLogin.alpha = 0f
+        tvForgotPassword.alpha = 0f
+        tvSignup.alpha = 0f
     }
 
 
@@ -198,76 +197,55 @@ class Login : AppCompatActivity() {
 
     private fun runEntranceAnimations() {
         lifecycleScope.launch {
-
             delay(150)
 
-            // Welcome Title
-            ObjectAnimator.ofFloat(tvWelcome, "alpha", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
-            ObjectAnimator.ofFloat(tvWelcome, "translationY", -20f, 0f).apply {
+            // 1. Welcome Title (Fade In + Slide Down)
+            ObjectAnimator.ofFloat(tvWelcome, "alpha", 0f, 1f).apply { duration = 400; start() }
+            ObjectAnimator.ofFloat(tvWelcome, "translationY", -50f, 0f).apply {
                 duration = 400
                 interpolator = AccelerateDecelerateInterpolator()
                 start()
             }
 
-            ObjectAnimator.ofFloat(tvForgotPassword, "translationY", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
-
             delay(100)
 
-            // Subtitle
-            ObjectAnimator.ofFloat(tvSubtitle, "alpha", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
+            // 2. Subtitle
+            ObjectAnimator.ofFloat(tvSubtitle, "alpha", 0f, 1f).apply { duration = 400; start() }
 
             delay(150)
 
-            // Email Field
-            ObjectAnimator.ofFloat(tilEmail, "alpha", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
-            ObjectAnimator.ofFloat(tilEmail, "translationX", -30f, 0f).apply {
-                duration = 400
-                start()
-            }
+            // 3. Email Field (Fade In + Slide from Left)
+            ObjectAnimator.ofFloat(tilEmail, "alpha", 0f, 1f).apply { duration = 400; start() }
+            ObjectAnimator.ofFloat(tilEmail, "translationX", -50f, 0f).apply { duration = 400; start() }
 
             delay(100)
 
-            // Password Field
-            ObjectAnimator.ofFloat(tilPassword, "alpha", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
-            ObjectAnimator.ofFloat(tilPassword, "translationX", -30f, 0f).apply {
-                duration = 400
-                start()
-            }
+            // 4. Password Field (Fade In + Slide from Left)
+            ObjectAnimator.ofFloat(tilPassword, "alpha", 0f, 1f).apply { duration = 400; start() }
+            ObjectAnimator.ofFloat(tilPassword, "translationX", -50f, 0f).apply { duration = 400; start() }
+
+            // 5. Forgot Password (FIXED: Fade In + Slide Up)
+            // It runs with the Password field for a nice effect
+            ObjectAnimator.ofFloat(tvForgotPassword, "alpha", 0f, 1f).apply { duration = 400; start() }
+            ObjectAnimator.ofFloat(tvForgotPassword, "translationY", 20f, 0f).apply { duration = 400; start() }
 
             delay(100)
 
-            // Login Button
-            ObjectAnimator.ofFloat(btnLogin, "alpha", 0f, 1f).apply {
-                duration = 400
-                start()
-            }
-            val btnScaleX = ObjectAnimator.ofFloat(btnLogin, "scaleX", 0.8f, 1f).apply {
-                duration = 400
-                interpolator = OvershootInterpolator()
-            }
-            val btnScaleY = ObjectAnimator.ofFloat(btnLogin, "scaleY", 0.8f, 1f).apply {
-                duration = 400
-                interpolator = OvershootInterpolator()
-            }
+            // 6. Login Button (Fade In + Pop Scale)
+            ObjectAnimator.ofFloat(btnLogin, "alpha", 0f, 1f).apply { duration = 400; start() }
+            val btnScaleX = ObjectAnimator.ofFloat(btnLogin, "scaleX", 0.8f, 1f)
+            val btnScaleY = ObjectAnimator.ofFloat(btnLogin, "scaleY", 0.8f, 1f)
+
             AnimatorSet().apply {
                 playTogether(btnScaleX, btnScaleY)
+                duration = 400
+                interpolator = OvershootInterpolator()
                 start()
             }
+
+            // 7. Signup Link (Bottom)
+            ObjectAnimator.ofFloat(tvSignup, "alpha", 0f, 1f).apply { duration = 400; start() }
+            ObjectAnimator.ofFloat(tvSignup, "translationY", 20f, 0f).apply { duration = 400; start() }
         }
     }
 

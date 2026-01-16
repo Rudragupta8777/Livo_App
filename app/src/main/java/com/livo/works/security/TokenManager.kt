@@ -19,19 +19,19 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 
-    fun saveAuthData(access: String, refresh: String, email: String, pass: String) {
+    fun saveAuthData(access: String, refresh: String, email: String) {
         prefs.edit().apply {
             putString("access_token", access)
             putString("refresh_token", refresh)
             putString("user_email", email)
-            putString("user_pass", pass)
         }.apply()
     }
 
     fun getAccessToken() = prefs.getString("access_token", null)
     fun getRefreshToken() = prefs.getString("refresh_token", null)
     fun getEmail() = prefs.getString("user_email", "") ?: ""
-    fun getPassword() = prefs.getString("user_pass", "") ?: ""
+
+    // REMOVED: fun getPassword()
 
     fun clear() = prefs.edit().clear().apply()
 }

@@ -18,9 +18,10 @@
             android:layout_marginTop="80dp"
             android:fontFamily="sans-serif-black"
             android:letterSpacing="0.02"
-            android:text="Create Your Account"
+            android:text="Create Account"
             android:textColor="@color/black"
             android:textSize="32sp"
+            android:textAlignment="center"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />

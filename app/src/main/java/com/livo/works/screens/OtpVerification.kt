@@ -33,8 +33,6 @@ class OtpVerification : AppCompatActivity() {
 
     private val viewModel: OtpViewModel by viewModels()
     private var registrationId: String? = null
-
-    // UI Components
     private lateinit var ivLockIcon: ImageView
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
@@ -257,15 +255,27 @@ class OtpVerification : AppCompatActivity() {
                     Toast.makeText(this, "Code sent!", Toast.LENGTH_SHORT).show()
                     tvResendBtn.isEnabled = true
                     tvResendBtn.alpha = 1f
-                    pbTimer.progress = 100 // Reset progress on resend
+                    pbTimer.progress = 100
                 }
+            }
+            is UiState.SessionExpired -> {
+                // Handle 401/403 from Backend
+                redirectToSignup("Session Expired")
             }
             is UiState.Error -> {
                 progressBar.visibility = View.GONE
+
+                // --- FIX: Check for Limit/Max errors here ---
+                val msg = state.message.lowercase()
+                if (msg.contains("limit") || msg.contains("maximum") || msg.contains("exceeded")) {
+                    redirectToSignup(state.message) // Pass the actual error ("Limit reached")
+                    return
+                }
+                // ---------------------------------------------
+
                 if (isVerifyAction) {
                     btnVerify.text = "Verify Now"
                     btnVerify.isEnabled = true
-                    // Show Red Box + Shake
                     showErrorVisuals()
                 } else {
                     tvResendBtn.isEnabled = true
@@ -277,7 +287,17 @@ class OtpVerification : AppCompatActivity() {
         }
     }
 
-    // --- VISUAL HELPERS ---
+    // Helper function to avoid code duplication
+    private fun redirectToSignup(reason: String) {
+        progressBar.visibility = View.GONE
+        Toast.makeText(this, "$reason. Please Signup again.", Toast.LENGTH_LONG).show()
+
+        val intent = Intent(this, Signup::class.java)
+        // Clear the back stack so they can't go back to OTP screen
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
+        finish()
+    }
 
     private fun showErrorVisuals() {
         isErrorState = true

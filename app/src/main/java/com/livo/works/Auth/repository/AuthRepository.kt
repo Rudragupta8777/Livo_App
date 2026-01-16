@@ -50,8 +50,7 @@ class AuthRepository @Inject constructor(
                     tokenManager.saveAuthData(
                         newTokens.accessToken,
                         newTokens.refreshToken,
-                        tokenManager.getEmail(),
-                        tokenManager.getPassword()
+                        tokenManager.getEmail()
                     )
 
                     Log.d(TAG, "✅ performSilentRefresh: SUCCESS - New tokens saved")
@@ -81,10 +80,6 @@ class AuthRepository @Inject constructor(
             // Don't clear tokens on network errors - user might just be offline
             false
         }
-    }
-
-    companion object {
-        private const val TAG = "AuthRepository"
     }
 
     suspend fun verifyOtp(regId: String, otp: String) = flow {
@@ -136,8 +131,7 @@ class AuthRepository @Inject constructor(
                 tokenManager.saveAuthData(
                     loginData.accessToken,
                     loginData.refreshToken,
-                    email,
-                    pass
+                    email
                 )
 
                 emit(UiState.Success(loginData))
@@ -154,18 +148,15 @@ class AuthRepository @Inject constructor(
         emit(UiState.Loading)
         try {
             val refreshToken = tokenManager.getRefreshToken() ?: ""
-            val email = tokenManager.getEmail()
-            val pass = tokenManager.getPassword()
 
             // We only pass the Refresh Token manually.
             // Access token is injected by the Interceptor.
-            val response = api.logout(refreshToken, LoginRequest(email, pass))
+            val response = api.logout(refreshToken)
 
             if (response.isSuccessful) {
                 tokenManager.clear()
                 emit(UiState.Success("Logged Out Successfully"))
             } else {
-                // Even if server rejects it, we clear local session to prevent "Zombie" login
                 tokenManager.clear()
                 emit(UiState.Error("Logout failed, but local session cleared"))
             }
@@ -173,5 +164,9 @@ class AuthRepository @Inject constructor(
             tokenManager.clear()
             emit(UiState.Error("Network error: Local session cleared"))
         }
+    }
+
+    companion object {
+        private const val TAG = "AuthRepository"
     }
 }

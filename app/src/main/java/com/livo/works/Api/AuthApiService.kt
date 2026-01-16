@@ -24,8 +24,7 @@ interface AuthApiService {
 
     @POST("api/v1/auth/logout")
     suspend fun logout(
-        @Header("x-refresh-token") refreshToken: String,
-        @Body request: LoginRequest
+        @Header("x-refresh-token") refreshToken: String
     ): Response<ApiResponse<String>>
 
     @POST("api/v1/auth/refresh")

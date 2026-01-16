@@ -54,8 +54,7 @@ class AuthAuthenticator @Inject constructor(
                         tokenManager.saveAuthData(
                             newTokens.accessToken,
                             newTokens.refreshToken,
-                            tokenManager.getEmail(),
-                            tokenManager.getPassword()
+                            tokenManager.getEmail()
                         )
 
                         Log.d(TAG, "Token refresh successful. Retrying original request.")
