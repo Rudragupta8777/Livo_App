@@ -1,3 +1,19 @@
+import java.util.Properties
+val localProperties = Properties()
+val localPropertiesFile = rootDir.resolve("local.properties")
+
+if (localPropertiesFile.exists()) {
+    localPropertiesFile.inputStream().use {
+        localProperties.load(it)
+    }
+}
+
+val mapboxApiKey: String =
+    localProperties.getProperty("MAP_BOX_API_KEY")
+        ?: System.getenv("MAP_BOX_API_KEY")
+        ?: error("❌ MAP_BOX_API_KEY not found in local.properties or environment variables")
+
+
 pluginManagement {
     repositories {
         google {
@@ -18,12 +34,9 @@ dependencyResolutionManagement {
         mavenCentral()
         maven {
             url = uri("https://api.mapbox.com/downloads/v2/releases/maven")
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
             credentials {
                 username = "mapbox"
-                password = providers.gradleProperty("MAPBOX_DOWNLOADS_TOKEN").get()
+                password = mapboxApiKey
             }
         }
     }
