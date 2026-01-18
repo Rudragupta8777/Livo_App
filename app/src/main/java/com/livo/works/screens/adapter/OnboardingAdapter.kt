@@ -1,4 +1,4 @@
-package com.livo.works.adapter
+package com.livo.works.screens.adapter
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,7 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.livo.works.R
-import com.livo.works.items.OnboardingItem
+import com.livo.works.screens.items.OnboardingItem
 
 class OnboardingAdapter(private val items: List<OnboardingItem>) :
     RecyclerView.Adapter<OnboardingAdapter.OnboardingViewHolder>() {

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="25dp"
+    android:layout_marginStart="20dp"
+    android:layout_marginEnd="20dp"
+    app:cardBackgroundColor="@color/white"
+    app:strokeColor="@color/card_outline_color"
+    app:strokeWidth="1dp"
+    app:cardElevation="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Guests"
+            android:textStyle="bold"
+            android:textSize="18sp"
+            android:textColor="@color/black"
+            android:layout_marginBottom="16dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Rooms"
+                android:textSize="16sp"
+                android:textColor="@color/black"/>
+
+            <ImageView
+                android:id="@+id/btnMinusRoom"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_minus"
+                android:background="@drawable/bg_otp_box_selector"
+                android:padding="8dp"
+                app:tint="@color/text_primary"/>
+
+            <TextView
+                android:id="@+id/tvRoomCount"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"/>
+
+            <ImageView
+                android:id="@+id/btnPlusRoom"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_plus"
+                android:background="@drawable/bg_otp_box_selector"
+                android:padding="8dp"
+                app:tint="@color/text_primary"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:layout_marginBottom="24dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Adults"
+                android:textSize="16sp"
+                android:textColor="@color/black"/>
+
+            <ImageView
+                android:id="@+id/btnMinusAdult"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_minus"
+                android:background="@drawable/bg_otp_box_selector"
+                android:padding="8dp"
+                app:tint="@color/text_primary"/>
+
+            <TextView
+                android:id="@+id/tvAdultCount"
+                android:layout_width="40dp"
+                android:layout_height="wrap_content"
+                android:text="2"
+                android:gravity="center"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:textColor="@color/black"/>
+
+            <ImageView
+                android:id="@+id/btnPlusAdult"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_plus"
+                android:background="@drawable/bg_otp_box_selector"
+                android:padding="8dp"
+                app:tint="@color/text_primary"/>
+        </LinearLayout>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnDoneGuests"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="Apply"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            app:backgroundTint="@color/text_primary"/>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

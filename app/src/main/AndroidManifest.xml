@@ -17,6 +17,12 @@
         android:theme="@style/Theme.Livo"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".screens.FullMap"
+            android:exported="false" />
+        <activity
+            android:name=".screens.HotelDetails"
+            android:exported="false" />
+        <activity
             android:name=".screens.ResetPassword"
             android:exported="false" />
         <activity

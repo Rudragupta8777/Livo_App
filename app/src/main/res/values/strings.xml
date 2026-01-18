@@ -4,4 +4,6 @@
     <string name="on_boarding_btn_text">Get Started</string>
     <string name="default_create_acc">Don’t have an account?</string>
     <string name="create_acc">Create Account</string>
+
+    <string name="mapbox_access_token">pk.eyJ1IjoiaGFja2VyYmFiYTI5MDciLCJhIjoiY21raXBzcWczMHNnMDNlcXlsa25hbWo3biJ9.VtBOi7uQg5wY3DqcHnqt0g</string>
 </resources>

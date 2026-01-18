@@ -1,4 +1,4 @@
-package com.livo.works.items
+package com.livo.works.screens.items
 
 data class OnboardingItem(
     val title: String,

@@ -21,6 +21,10 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
@@ -75,4 +79,12 @@ dependencies {
 
     // ViewPager2 (usually included, but ensure it's here)
     implementation("androidx.viewpager2:viewpager2:1.0.0")
+
+    // Glide (Image Loading)
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation("com.facebook.shimmer:shimmer:0.5.0")
+
+    // Add Mapbox
+    implementation("com.mapbox.maps:android:11.2.0")
 }

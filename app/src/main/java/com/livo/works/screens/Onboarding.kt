@@ -15,8 +15,8 @@ import androidx.core.content.ContextCompat
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.button.MaterialButton
 import com.livo.works.R
-import com.livo.works.adapter.OnboardingAdapter
-import com.livo.works.items.OnboardingItem
+import com.livo.works.screens.adapter.OnboardingAdapter
+import com.livo.works.screens.items.OnboardingItem
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

@@ -3,15 +3,54 @@ package com.livo.works.screens
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.livo.works.R
+import com.livo.works.screens.fragments.BookingFragment
+import com.livo.works.screens.fragments.HomeFragment
+import com.livo.works.screens.fragments.ProfileFragment
+import com.livo.works.screens.fragments.SearchFragment
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class Dashboard : AppCompatActivity() {
+
+    private lateinit var bottomNav: BottomNavigationView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_dashboard)
 
+        bottomNav = findViewById(R.id.bottomNav)
+
+        if (savedInstanceState == null) {
+            loadFragment(HomeFragment())
+        }
+
+        bottomNav.setOnItemSelectedListener { item ->
+            val fragment = when (item.itemId) {
+                R.id.nav_home -> HomeFragment()
+                R.id.nav_search -> SearchFragment()
+                R.id.nav_booking -> BookingFragment()
+                R.id.nav_profile -> ProfileFragment()
+                else -> null
+            }
+            fragment?.let {
+                loadFragment(it)
+                return@setOnItemSelectedListener true
+            }
+            false
+        }
+    }
+
+    private fun loadFragment(fragment: Fragment) {
+        val transaction = supportFragmentManager.beginTransaction()
+        transaction.setCustomAnimations(
+            android.R.anim.fade_in,
+            android.R.anim.fade_out
+        )
+        transaction.replace(R.id.fragmentContainer, fragment)
+        transaction.commit()
     }
 }

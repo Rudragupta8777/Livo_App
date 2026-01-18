@@ -9,4 +9,8 @@
     <color name="dot_indicator_inactive">#CCCCCC</color>
 
     <color name="login_input_box">#767676</color>
+    <color name="card_outline_color">#3BFFFFFF</color>
+    <color name="search_blur">#14FFFFFF</color>
+
+    <color name="lines">#767676</color>
 </resources>
