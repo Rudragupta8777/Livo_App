@@ -54,6 +54,7 @@ class SearchFragment : Fragment() {
     private val apiDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     private var selectedStartDate: String = ""
     private var selectedEndDate: String = ""
+
     private var roomCount = 1
     private var adultCount = 2
     private val dotAnimators = mutableListOf<ObjectAnimator>()
@@ -69,6 +70,9 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Set Initial Text (Only Rooms)
+        binding.tvGuestDisplay.text = "1 Room"
+
         initDefaultDates()
         setupRecyclerView()
         setupClickListeners()
@@ -78,14 +82,17 @@ class SearchFragment : Fragment() {
     private fun initDefaultDates() {
         val calendar = Calendar.getInstance()
         val start = calendar.time
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
-        val end = calendar.time
 
+        // 1. Store Start Date
         selectedStartDate = apiDateFormat.format(start)
-        selectedEndDate = apiDateFormat.format(end)
-
         binding.tvCheckInDate.text = uiDateFormat.format(start)
-        binding.tvCheckOutDate.text = uiDateFormat.format(end)
+
+        calendar.add(Calendar.DAY_OF_MONTH, 1)
+        val uiEnd = calendar.time
+        binding.tvCheckOutDate.text = uiDateFormat.format(uiEnd)
+
+        calendar.add(Calendar.DAY_OF_MONTH, -1)
+        selectedEndDate = apiDateFormat.format(calendar.time)
     }
 
     private fun setupRecyclerView() {
@@ -123,9 +130,7 @@ class SearchFragment : Fragment() {
                 hideKeyboard()
                 toggleSearchCard(expanded = false)
 
-                val adjustedEndDate = calculateAdjustedEndDate(selectedEndDate)
-
-                viewModel.searchHotels(city, selectedStartDate, adjustedEndDate, roomCount)
+                viewModel.searchHotels(city, selectedStartDate, selectedEndDate, roomCount)
             } else {
                 Toast.makeText(context, "Please enter a city", Toast.LENGTH_SHORT).show()
             }
@@ -144,23 +149,6 @@ class SearchFragment : Fragment() {
         }
     }
 
-    private fun calculateAdjustedEndDate(originalEndDate: String): String {
-        return try {
-            val date = apiDateFormat.parse(originalEndDate)
-
-            val calendar = Calendar.getInstance()
-            if (date != null) {
-                calendar.time = date
-                calendar.add(Calendar.DAY_OF_MONTH, -1)
-                apiDateFormat.format(calendar.time)
-            } else {
-                originalEndDate
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            originalEndDate
-        }
-    }
     private fun toggleSearchCard(expanded: Boolean) {
         val transition = AutoTransition()
         transition.duration = 300 // 300ms animation
@@ -189,55 +177,35 @@ class SearchFragment : Fragment() {
         dialog.window?.setGravity(Gravity.CENTER)
 
         val tvRoomCount = dialog.findViewById<TextView>(R.id.tvRoomCount)
-        val tvAdultCount = dialog.findViewById<TextView>(R.id.tvAdultCount)
         val btnMinusRoom = dialog.findViewById<ImageView>(R.id.btnMinusRoom)
         val btnPlusRoom = dialog.findViewById<ImageView>(R.id.btnPlusRoom)
-        val btnMinusAdult = dialog.findViewById<ImageView>(R.id.btnMinusAdult)
-        val btnPlusAdult = dialog.findViewById<ImageView>(R.id.btnPlusAdult)
         val btnApply = dialog.findViewById<MaterialButton>(R.id.btnDoneGuests)
 
         var tempRooms = roomCount
-        var tempAdults = adultCount
 
         tvRoomCount.text = tempRooms.toString()
-        tvAdultCount.text = tempAdults.toString()
 
         btnPlusRoom.setOnClickListener {
             if (tempRooms < 10) {
                 tempRooms++
-                tempAdults += 2
                 tvRoomCount.text = tempRooms.toString()
-                tvAdultCount.text = tempAdults.toString()
             }
         }
         btnMinusRoom.setOnClickListener {
             if (tempRooms > 1) {
                 tempRooms--
-                if (tempAdults > (tempRooms * 2)) {
-                    tempAdults = tempRooms * 2
-                }
                 tvRoomCount.text = tempRooms.toString()
-                tvAdultCount.text = tempAdults.toString()
-            }
-        }
-
-        btnPlusAdult.setOnClickListener {
-            if (tempAdults < 30) {
-                tempAdults++
-                tvAdultCount.text = tempAdults.toString()
-            }
-        }
-        btnMinusAdult.setOnClickListener {
-            if (tempAdults > 1) {
-                tempAdults--
-                tvAdultCount.text = tempAdults.toString()
             }
         }
 
         btnApply.setOnClickListener {
             roomCount = tempRooms
-            adultCount = tempAdults
-            binding.tvGuestDisplay.text = "$roomCount Room, $adultCount Adults"
+            adultCount = tempRooms * 2
+
+            // CHANGED: Show ONLY Rooms (e.g. "3 Rooms")
+            val roomText = if (roomCount == 1) "1 Room" else "$roomCount Rooms"
+            binding.tvGuestDisplay.text = roomText
+
             dialog.dismiss()
         }
 
@@ -262,10 +230,14 @@ class SearchFragment : Fragment() {
             val endDate = Date(selection.second)
 
             selectedStartDate = apiDateFormat.format(startDate)
-            selectedEndDate = apiDateFormat.format(endDate)
 
             binding.tvCheckInDate.text = uiDateFormat.format(startDate)
             binding.tvCheckOutDate.text = uiDateFormat.format(endDate)
+
+            val cal = Calendar.getInstance()
+            cal.time = endDate
+            cal.add(Calendar.DAY_OF_MONTH, -1)
+            selectedEndDate = apiDateFormat.format(cal.time)
         }
 
         datePicker.show(parentFragmentManager, "DATE_PICKER")
@@ -308,18 +280,14 @@ class SearchFragment : Fragment() {
         dotAnimators.clear()
 
         dots.forEachIndexed { index, dot ->
-            // Scale Up and Down
             val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.5f, 1f)
             val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.5f, 1f)
-            // Fade slightly
             val alpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.5f, 1f)
 
             val animator = ObjectAnimator.ofPropertyValuesHolder(dot, scaleX, scaleY, alpha)
-            animator.duration = 800 // Speed of one wave
+            animator.duration = 800
             animator.repeatCount = ObjectAnimator.INFINITE
             animator.interpolator = AccelerateDecelerateInterpolator()
-
-            // Stagger the start times to create the "Wave" effect
             animator.startDelay = (index * 150).toLong()
 
             animator.start()
@@ -328,7 +296,6 @@ class SearchFragment : Fragment() {
     }
 
     private fun hideLoading() {
-        // 1. Stop Animations
         dotAnimators.forEach { it.cancel() }
         dotAnimators.clear()
 
@@ -336,7 +303,6 @@ class SearchFragment : Fragment() {
             binding.rvHotels.setRenderEffect(null)
         }
 
-        // 3. Fade out overlay smoothly
         binding.loadingOverlay.animate()
             .alpha(0f)
             .setDuration(300)

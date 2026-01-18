@@ -185,7 +185,6 @@ class HotelDetails : AppCompatActivity() {
         setupMapbox(hotel)
     }
 
-    // ... (setupMapbox, addAnnotationToMap, bitmapFromDrawableRes remain exactly the same as before)
     private fun setupMapbox(hotel: HotelSummary) {
         try {
             val locParts = hotel.contactInfo.location.split(",")
