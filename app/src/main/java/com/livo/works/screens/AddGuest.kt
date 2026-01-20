@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
@@ -47,6 +48,7 @@ class AddGuest : AppCompatActivity() {
 
         setupUI()
         observeViewModel()
+        setupCapacityDialog()
 
         // Add first guest automatically
         addNewGuestRow()
@@ -55,7 +57,7 @@ class AddGuest : AppCompatActivity() {
     private fun setupUI() {
         binding.toolbar.setNavigationOnClickListener { finish() }
 
-        binding.tvGuestLimitInfo.text = "Who is checking in? (Max $maxCapacity Guests)"
+        binding.maxCapacity.text = "Add up to $maxCapacity Guests"
 
         // Enable smooth animations for adding/removing rows
         binding.containerGuests.layoutTransition = LayoutTransition()
@@ -65,11 +67,8 @@ class AddGuest : AppCompatActivity() {
             if (currentGuestCount < maxCapacity) {
                 addNewGuestRow()
             } else {
-                // *** ERROR REQUIREMENT ***
-                Snackbar.make(binding.root, "Maximum capacity is $maxCapacity guests", Snackbar.LENGTH_SHORT)
-                    .setBackgroundTint(getColor(R.color.red_error)) // Define a red color or use Color.RED
-                    .setTextColor(getColor(R.color.white))
-                    .show()
+                // Show custom popup dialog
+                showCapacityLimitDialog()
             }
         }
 
@@ -77,6 +76,65 @@ class AddGuest : AppCompatActivity() {
         binding.btnContinue.setOnClickListener {
             collectDataAndSubmit()
         }
+    }
+
+    private fun setupCapacityDialog() {
+        // Set the capacity message dynamically
+        binding.tvCapacityMessage.text = "You can add maximum $maxCapacity guest${if (maxCapacity > 1) "s" else ""} for this booking."
+
+        // Close button click
+        binding.btnCloseCapacityDialog.setOnClickListener {
+            hideCapacityLimitDialog()
+        }
+
+        // Click outside to close
+        binding.capacityLimitOverlay.setOnClickListener {
+            hideCapacityLimitDialog()
+        }
+    }
+
+    private fun showCapacityLimitDialog() {
+        binding.capacityLimitOverlay.visibility = View.VISIBLE
+        binding.capacityLimitOverlay.alpha = 0f
+        binding.capacityLimitOverlay.animate()
+            .alpha(1f)
+            .setDuration(250)
+            .setInterpolator(AccelerateDecelerateInterpolator())
+            .start()
+
+        // Scale animation for the card
+        val card = (binding.capacityLimitOverlay.getChildAt(0) as? View)
+        card?.apply {
+            scaleX = 0.8f
+            scaleY = 0.8f
+            alpha = 0f
+            animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .alpha(1f)
+                .setDuration(300)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .start()
+        }
+    }
+
+    private fun hideCapacityLimitDialog() {
+        val card = (binding.capacityLimitOverlay.getChildAt(0) as? View)
+
+        card?.animate()
+            ?.scaleX(0.8f)
+            ?.scaleY(0.8f)
+            ?.alpha(0f)
+            ?.setDuration(200)
+            ?.start()
+
+        binding.capacityLimitOverlay.animate()
+            .alpha(0f)
+            .setDuration(250)
+            .withEndAction {
+                binding.capacityLimitOverlay.visibility = View.GONE
+            }
+            .start()
     }
 
     private fun addNewGuestRow() {
@@ -108,12 +166,26 @@ class AddGuest : AppCompatActivity() {
         binding.mainScrollView.post {
             binding.mainScrollView.fullScroll(View.FOCUS_DOWN)
         }
+
+        // Update "Add Another" button state
+        updateAddButtonState()
     }
 
     private fun removeGuestRow(view: View) {
         binding.containerGuests.removeView(view)
         currentGuestCount--
         renumberGuests()
+        updateAddButtonState()
+    }
+
+    private fun updateAddButtonState() {
+        if (currentGuestCount >= maxCapacity) {
+            binding.btnAddAnother.alpha = 0.5f
+            binding.btnAddAnother.isEnabled = true // Keep enabled to show popup
+        } else {
+            binding.btnAddAnother.alpha = 1f
+            binding.btnAddAnother.isEnabled = true
+        }
     }
 
     private fun renumberGuests() {
@@ -206,6 +278,14 @@ class AddGuest : AppCompatActivity() {
                     else -> {}
                 }
             }
+        }
+    }
+
+    override fun onBackPressed() {
+        if (binding.capacityLimitOverlay.visibility == View.VISIBLE) {
+            hideCapacityLimitDialog()
+        } else {
+            super.onBackPressed()
         }
     }
 }

@@ -4,6 +4,9 @@ import android.content.Context
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -18,6 +21,12 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
+   private val _logoutSignal = MutableSharedFlow<Unit>(
+        replay = 0,
+        extraBufferCapacity = 1,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
+    val logoutSignal = _logoutSignal.asSharedFlow()
 
     fun saveAuthData(access: String, refresh: String, email: String) {
         prefs.edit().apply {
@@ -31,7 +40,9 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
     fun getRefreshToken() = prefs.getString("refresh_token", null)
     fun getEmail() = prefs.getString("user_email", "") ?: ""
 
-    // REMOVED: fun getPassword()
-
-    fun clear() = prefs.edit().clear().apply()
+    // 2. Update clear() to emit the signal
+    fun clear() {
+        prefs.edit().clear().apply()
+        _logoutSignal.tryEmit(Unit)
+    }
 }

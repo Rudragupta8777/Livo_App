@@ -5,45 +5,72 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="16dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
+    app:cardCornerRadius="20dp"
+    app:cardElevation="0dp"
     app:cardBackgroundColor="@color/white"
-    app:strokeColor="@color/card_outline_color"
+    app:strokeColor="@color/lines"
     app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="24dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="20dp">
+
+            <LinearLayout
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="@drawable/bg_dot"
+                android:backgroundTint="@color/text_primary"
+                android:gravity="center"
+                android:alpha="0.1">
+
+                <ImageView
+                    android:src="@drawable/ic_profile"
+                    android:tint="@color/black"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+            </LinearLayout>
 
             <TextView
                 android:id="@+id/tvGuestTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginStart="12dp"
                 android:text="Guest 1"
                 android:textStyle="bold"
                 android:textColor="@color/black"
-                android:textSize="16sp"/>
+                android:textSize="18sp"
+                android:letterSpacing="0.01"/>
 
-            <ImageView
-                android:id="@+id/btnRemove"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_close"
-                app:tint="@color/on_boarding_description"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:visibility="gone"/>
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="@color/screen_background"
+                app:strokeWidth="0dp">
+
+                <ImageView
+                    android:id="@+id/btnRemove"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_close"
+                    android:padding="8dp"
+                    app:tint="@color/on_boarding_description"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone"/>
+            </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -51,18 +78,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Full Name"
-            app:boxCornerRadiusTopStart="12dp"
-            app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp"
-            app:boxCornerRadiusBottomEnd="12dp"
-            android:layout_marginBottom="12dp">
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusBottomEnd="14dp"
+            app:boxStrokeWidth="2dp"
+            app:hintTextColor="@color/on_boarding_description"
+            android:layout_marginBottom="16dp">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etGuestName"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="56dp"
                 android:inputType="textPersonName|textCapWords"
-                android:textColor="@color/black"/>
+                android:textColor="@color/black"
+                android:textSize="15sp"
+                android:paddingHorizontal="16dp"/>
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
@@ -75,57 +106,79 @@
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.4"
+                android:layout_weight="0.35"
                 android:hint="Age"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusBottomEnd="12dp"
+                app:boxCornerRadiusTopStart="14dp"
+                app:boxCornerRadiusTopEnd="14dp"
+                app:boxCornerRadiusBottomStart="14dp"
+                app:boxCornerRadiusBottomEnd="14dp"
+                app:boxStrokeWidth="2dp"
+                app:hintTextColor="@color/on_boarding_description"
                 android:layout_marginEnd="12dp">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etGuestAge"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="56dp"
                     android:inputType="number"
                     android:maxLength="3"
-                    android:textColor="@color/black"/>
+                    android:textColor="@color/black"
+                    android:textSize="15sp"
+                    android:paddingHorizontal="16dp"
+                    android:gravity="center"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <HorizontalScrollView
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="0.6"
-                android:scrollbars="none">
+                android:layout_weight="0.65"
+                android:scrollbars="none"
+                android:layout_gravity="center_vertical">
 
                 <com.google.android.material.chip.ChipGroup
                     android:id="@+id/cgGender"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     app:singleSelection="true"
-                    app:selectionRequired="true">
+                    app:selectionRequired="true"
+                    app:chipSpacing="8dp">
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipMale"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
+                        android:layout_height="48dp"
                         android:text="Male"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:letterSpacing="0.02"
+                        app:chipCornerRadius="12dp"
+                        app:chipStrokeWidth="2dp"
                         android:checked="true"/>
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipFemale"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Female"/>
+                        android:layout_height="48dp"
+                        android:text="Female"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:letterSpacing="0.02"
+                        app:chipCornerRadius="12dp"
+                        app:chipStrokeWidth="2dp"/>
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/chipOther"
                         style="@style/Widget.Material3.Chip.Filter"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Other"/>
+                        android:layout_height="48dp"
+                        android:text="Other"
+                        android:textStyle="bold"
+                        android:textSize="14sp"
+                        android:letterSpacing="0.02"
+                        app:chipCornerRadius="12dp"
+                        app:chipStrokeWidth="2dp"/>
 
                 </com.google.android.material.chip.ChipGroup>
             </HorizontalScrollView>

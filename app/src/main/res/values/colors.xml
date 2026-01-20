@@ -19,5 +19,5 @@
 
     <color name="lines">#1A000000</color>
 
-    <color name="red_error">#FA6868</color>
+    <color name="red_error">#FB0000</color>
 </resources>

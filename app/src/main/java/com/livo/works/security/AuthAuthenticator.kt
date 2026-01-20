@@ -2,87 +2,99 @@ package com.livo.works.security
 
 import android.util.Log
 import com.livo.works.Api.AuthApiService
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
 import javax.inject.Inject
+import javax.inject.Provider
 import javax.inject.Singleton
 
 @Singleton
 class AuthAuthenticator @Inject constructor(
     private val tokenManager: TokenManager,
-    private val authApi: AuthApiService
+    private val apiProvider: Provider<AuthApiService>
 ) : Authenticator {
 
+    private val mutex = Mutex()
+
     override fun authenticate(route: Route?, response: Response): Request? {
-        // Prevent infinite retry loops - if request already has retry marker, fail
+        // 1. FAIL FAST checks
         if (response.request.header("X-Token-Refresh-Attempted") != null) {
-            Log.w(TAG, "Token refresh already attempted. Clearing session.")
             tokenManager.clear()
             return null
         }
-
-        // Don't attempt refresh if we're already calling an auth endpoint
-        // This prevents recursive loops when the refresh endpoint itself fails
         val requestPath = response.request.url.encodedPath
         if (requestPath.contains("/auth/", ignoreCase = true)) {
-            Log.w(TAG, "Auth endpoint failed. Clearing session.")
             tokenManager.clear()
             return null
         }
 
-        // Get refresh token
+        // 2. OPTIMIZATION check
+        val currentAccessToken = tokenManager.getAccessToken()
+        val requestAccessToken = response.request.header("Authorization")?.substringAfter("Bearer ")
+
+        if (currentAccessToken != null && currentAccessToken != requestAccessToken) {
+            return newRequestWithToken(response.request, currentAccessToken)
+        }
+
         val refreshToken = tokenManager.getRefreshToken()
         if (refreshToken.isNullOrEmpty()) {
-            Log.w(TAG, "No refresh token available. User needs to login.")
             return null
         }
 
-        // Attempt token refresh
-        return synchronized(this) {
-            try {
-                Log.d(TAG, "Attempting automatic token refresh for failed request")
-                val refreshResponse = authApi.refreshToken(refreshToken).execute()
+        // 3. THREAD-SAFE REFRESH
+        return runBlocking {
+            mutex.withLock {
+                // Double check inside lock
+                val updatedAccessToken = tokenManager.getAccessToken()
+                val updatedRefreshToken = tokenManager.getRefreshToken()
 
-                when {
-                    refreshResponse.isSuccessful && refreshResponse.body()?.data != null -> {
+                if (updatedAccessToken != null && updatedAccessToken != requestAccessToken) {
+                    return@withLock newRequestWithToken(response.request, updatedAccessToken)
+                }
+
+                try {
+                    Log.d(TAG, "Attempting automatic token refresh...")
+
+                    val refreshResponse = apiProvider.get().refreshToken(updatedRefreshToken ?: "").execute()
+
+                    if (refreshResponse.isSuccessful && refreshResponse.body()?.data != null) {
                         val newTokens = refreshResponse.body()!!.data!!
 
-                        // Save new tokens
                         tokenManager.saveAuthData(
                             newTokens.accessToken,
                             newTokens.refreshToken,
                             tokenManager.getEmail()
                         )
 
-                        Log.d(TAG, "Token refresh successful. Retrying original request.")
+                        Log.d(TAG, "Token refresh successful.")
+                        return@withLock newRequestWithToken(response.request, newTokens.accessToken)
 
-                        // Retry the original request with new access token
-                        response.request.newBuilder()
-                            .header("Authorization", "Bearer ${newTokens.accessToken}")
-                            .header("X-Token-Refresh-Attempted", "true")
-                            .build()
-                    }
-
-                    refreshResponse.code() in 400..499 -> {
-                        // Client error - token is invalid, expired, or revoked
+                    } else if (refreshResponse.code() in 400..499) {
                         Log.e(TAG, "Refresh token invalid (${refreshResponse.code()}). Clearing session.")
                         tokenManager.clear()
-                        null
+                        return@withLock null
+                    } else {
+                        Log.e(TAG, "Server error: ${refreshResponse.code()}")
+                        return@withLock null
                     }
-
-                    else -> {
-                        // Server error - don't clear session, just fail this request
-                        Log.e(TAG, "Token refresh failed with server error: ${refreshResponse.code()}")
-                        null
-                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Network error: ${e.message}")
+                    return@withLock null
                 }
-            } catch (e: Exception) {
-                Log.e(TAG, "Token refresh network error: ${e.message}")
-                null
             }
         }
+    }
+
+    private fun newRequestWithToken(request: Request, newToken: String): Request {
+        return request.newBuilder()
+            .header("Authorization", "Bearer $newToken")
+            .header("X-Token-Refresh-Attempted", "true")
+            .build()
     }
 
     companion object {
