@@ -1,8 +1,9 @@
 package com.livo.works.di
 
 import com.livo.works.Api.AuthApiService
+import com.livo.works.Api.BookingApiService
 import com.livo.works.Api.HotelApiService
-import com.livo.works.Auth.AuthAuthenticator
+import com.livo.works.security.AuthAuthenticator
 import com.livo.works.security.TokenManager
 import dagger.Module
 import dagger.Provides
@@ -18,7 +19,7 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    private const val BASE_URL = "https://e14dfb29ae78.ngrok-free.app/"
+    private const val BASE_URL = "https://b206cbfd4ef4.ngrok-free.app/api/v1/"
 
     @Provides
     @Singleton
@@ -86,5 +87,11 @@ object NetworkModule {
     @Singleton
     fun provideHotelApiService(@Named("ApiRetrofit") retrofit: Retrofit): HotelApiService {
         return retrofit.create(HotelApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideBookingApiService(@Named("ApiRetrofit") retrofit: Retrofit): BookingApiService {
+        return retrofit.create(BookingApiService::class.java)
     }
 }

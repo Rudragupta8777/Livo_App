@@ -100,7 +100,15 @@ class HotelDetails : AppCompatActivity() {
 
     private fun setupRoomRecyclerView() {
         roomAdapter = RoomAdapter { room ->
-            Toast.makeText(this, "Selected: ${room.type}", Toast.LENGTH_SHORT).show()
+            // Pass Data to RoomDetailsActivity
+            val intent = Intent(this, RoomDetails::class.java).apply {
+                putExtra("ROOM_DATA", room) // Parcelable Object
+                // We need to retrieve start/end/rooms from the original intent that opened HotelDetails
+                putExtra("START_DATE", intent.getStringExtra("START_DATE"))
+                putExtra("END_DATE", intent.getStringExtra("END_DATE"))
+                putExtra("ROOM_COUNT", intent.getIntExtra("ROOMS", 1))
+            }
+            startActivity(intent)
         }
 
         binding.rvRooms.apply {

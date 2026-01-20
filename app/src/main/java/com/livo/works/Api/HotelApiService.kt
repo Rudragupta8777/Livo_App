@@ -11,12 +11,12 @@ import retrofit2.http.Query
 
 interface HotelApiService {
 
-    @POST("api/v1/hotels/search")
+    @POST("hotels/search")
     suspend fun searchHotels(
         @Body request: HotelSearchRequest
     ): Response<ApiResponse<HotelSearchResponse>>
 
-    @GET("api/v1/hotels/{id}")
+    @GET("hotels/{id}")
     suspend fun getHotelDetails(
         @Path("id") id: Long,
         @Query("startDate") startDate: String,

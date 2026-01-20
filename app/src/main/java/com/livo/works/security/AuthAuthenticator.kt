@@ -1,8 +1,7 @@
-package com.livo.works.Auth
+package com.livo.works.security
 
 import android.util.Log
 import com.livo.works.Api.AuthApiService
-import com.livo.works.security.TokenManager
 import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response

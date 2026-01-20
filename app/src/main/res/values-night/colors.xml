@@ -13,4 +13,6 @@
     <color name="search_blur">#14FFFFFF</color>
 
     <color name="lines">#767676</color>
+
+    <color name="red_error">#FA6868</color>
 </resources>
