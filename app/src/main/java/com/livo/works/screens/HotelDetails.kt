@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
@@ -52,6 +53,7 @@ class HotelDetails : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityHotelDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
 
         setupHeaderViewPager() // Setup Header
         setupRoomRecyclerView()

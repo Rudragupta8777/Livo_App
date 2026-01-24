@@ -3,6 +3,7 @@ package com.livo.works.di
 import com.livo.works.Api.AuthApiService
 import com.livo.works.Api.BookingApiService
 import com.livo.works.Api.HotelApiService
+import com.livo.works.BuildConfig
 import com.livo.works.security.AuthAuthenticator
 import com.livo.works.security.TokenManager
 import dagger.Module
@@ -18,8 +19,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
-    private const val BASE_URL = "https://0ba1852a9273.ngrok-free.app/api/v1/"
+    private const val BASE_URL = BuildConfig.BACKEND_URL
 
     @Provides
     @Singleton

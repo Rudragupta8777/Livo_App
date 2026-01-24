@@ -10,11 +10,11 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.ChipGroup
-import com.google.android.material.snackbar.Snackbar
 import com.livo.works.Booking.data.GuestDto
 import com.livo.works.R
 import com.livo.works.ViewModel.BookingViewModel
@@ -37,6 +37,7 @@ class AddGuest : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityAddGuestBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
 
         // 1. Get Data from Previous Screen
         bookingId = intent.getLongExtra("BOOKING_ID", -1)

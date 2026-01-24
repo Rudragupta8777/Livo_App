@@ -10,6 +10,7 @@ import android.os.Looper
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
@@ -38,6 +39,7 @@ class RoomDetails : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityRoomDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
 
         binding.shimmerRoomDetails.startShimmer()
         binding.shimmerRoomDetails.visibility = View.VISIBLE

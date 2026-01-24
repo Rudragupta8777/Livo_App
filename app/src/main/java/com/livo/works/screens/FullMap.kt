@@ -8,6 +8,7 @@ import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
 import android.os.Bundle
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.content.res.AppCompatResources
@@ -29,6 +30,7 @@ class FullMap : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityFullMapBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
 
         val lat = intent.getDoubleExtra("LAT", 0.0)
         val lng = intent.getDoubleExtra("LNG", 0.0)
