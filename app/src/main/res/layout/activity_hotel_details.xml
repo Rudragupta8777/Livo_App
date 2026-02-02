@@ -10,13 +10,14 @@
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="320dp"
-        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:elevation="0dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:contentScrim="@color/text_primary"
-            app:layout_scrollFlags="scroll|exitUntilCollapsed">
+            app:layout_scrollFlags="scroll|exitUntilCollapsed"
+            app:contentScrim="@color/screen_background">
 
             <FrameLayout
                 android:layout_width="match_parent"
@@ -28,6 +29,13 @@
                     android:id="@+id/vpHeaderImages"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:layout_gravity="top"
+                    android:background="@drawable/gradient_shadow_bottom"
+                    android:rotation="180"/>
 
 
                 <com.google.android.material.card.MaterialCardView

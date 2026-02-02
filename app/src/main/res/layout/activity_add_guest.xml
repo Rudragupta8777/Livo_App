@@ -183,30 +183,6 @@
     </com.google.android.material.card.MaterialCardView>
 
     <FrameLayout
-        android:id="@+id/loadingOverlay"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#E6FFFFFF"
-        android:backgroundTint="@color/screen_background"
-        android:visibility="gone"
-        android:clickable="true"
-        android:focusable="true"
-        android:elevation="100dp">
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="@color/screen_background"
-            android:alpha="0.95"/>
-
-        <ProgressBar
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:layout_gravity="center"
-            android:indeterminateTint="@color/text_primary"/>
-    </FrameLayout>
-
-    <FrameLayout
         android:id="@+id/capacityLimitOverlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"

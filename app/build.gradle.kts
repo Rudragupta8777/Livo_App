@@ -100,6 +100,9 @@ dependencies {
 
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
-    // Add Mapbox
+    // Mapbox
     implementation("com.mapbox.maps:android:11.2.0")
+
+    // Razorpay
+    implementation("com.razorpay:checkout:1.6.38")
 }

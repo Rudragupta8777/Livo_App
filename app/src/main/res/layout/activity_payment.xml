@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/screen_background">
+
+    <ImageView
+        android:id="@+id/ivSecure"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:src="@drawable/ic_lock"
+        app:tint="@color/text_primary"
+        android:layout_marginBottom="32dp"
+        app:layout_constraintBottom_toTopOf="@+id/dotsLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <LinearLayout
+        android:id="@+id/dotsLayout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <View
+            android:id="@+id/dot1"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_dot"/>
+
+        <View
+            android:id="@+id/dot2"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_dot"/>
+
+        <View
+            android:id="@+id/dot3"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_dot"/>
+
+        <View
+            android:id="@+id/dot4"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_margin="6dp"
+            android:background="@drawable/bg_dot"/>
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="32dp"
+        android:text="Initializing Secure Payment..."
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintTop_toBottomOf="@id/dotsLayout"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvSubStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Please do not close the app or press back"
+        android:textSize="14sp"
+        android:textColor="@color/on_boarding_description"
+        app:layout_constraintTop_toBottomOf="@id/tvStatus"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

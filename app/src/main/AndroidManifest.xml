@@ -17,6 +17,12 @@
         android:theme="@style/Theme.Livo"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".screens.BookingSuccess"
+            android:exported="false" />
+        <activity
+            android:name=".screens.Payment"
+            android:exported="false" />
+        <activity
             android:name=".screens.AddGuest"
             android:exported="false" />
         <activity
@@ -49,6 +55,7 @@
         <activity
             android:name=".screens.Onboarding"
             android:exported="false" />
+
         <activity
             android:name=".screens.Splash"
             android:exported="true"
