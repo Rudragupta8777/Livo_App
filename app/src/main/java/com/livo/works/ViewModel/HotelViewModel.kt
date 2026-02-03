@@ -16,14 +16,22 @@ import javax.inject.Inject
 class HotelViewModel @Inject constructor(
     private val repository: HotelRepository
 ) : ViewModel() {
-
-    // Search State
     private val _searchState = MutableStateFlow<UiState<HotelSearchResponse>>(UiState.Idle)
     val searchState = _searchState.asStateFlow()
 
-    // Details State
     private val _detailsState = MutableStateFlow<UiState<HotelDetailsResponse>>(UiState.Idle)
     val detailsState = _detailsState.asStateFlow()
+
+    init {
+        restoreLastSearch()
+    }
+
+    private fun restoreLastSearch() {
+        val cached = repository.getLastSearch()
+        if (cached != null) {
+            _searchState.value = UiState.Success(cached)
+        }
+    }
 
     fun searchHotels(city: String, start: String, end: String, rooms: Int) {
         viewModelScope.launch {

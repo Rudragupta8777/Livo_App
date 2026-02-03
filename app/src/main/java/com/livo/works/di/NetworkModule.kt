@@ -4,7 +4,9 @@ import com.livo.works.Api.AuthApiService
 import com.livo.works.Api.BookingApiService
 import com.livo.works.Api.HotelApiService
 import com.livo.works.Api.PaymentApiService
+import com.livo.works.Api.SearchApiService
 import com.livo.works.BuildConfig
+import com.livo.works.Search.repository.SearchRepository
 import com.livo.works.security.AuthAuthenticator
 import com.livo.works.security.TokenManager
 import dagger.Module
@@ -100,5 +102,17 @@ object NetworkModule {
     @Singleton
     fun providePaymentApiService(@Named("ApiRetrofit") retrofit: Retrofit): PaymentApiService {
         return retrofit.create(PaymentApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchApi(@Named("ApiRetrofit") retrofit: Retrofit): SearchApiService {
+        return retrofit.create(SearchApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideSearchRepository(api: SearchApiService): SearchRepository {
+        return SearchRepository(api)
     }
 }
