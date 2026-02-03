@@ -4,36 +4,62 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="25dp"
     android:background="@color/screen_background">
+
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/screen_background"
+        android:background="@android:color/transparent"
         app:elevation="0dp">
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:elevation="0dp">
+            android:layout_height="wrap_content"
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp"
+            app:contentInsetStart="0dp"
+            app:contentInsetEnd="0dp">
 
-            <TextView
-                android:layout_width="wrap_content"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Guest Details"
-                android:textSize="24sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.01"
-                android:textColor="@color/black"/>
-        </androidx.appcompat.widget.Toolbar>
+                android:padding="5dp">
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/lines"
-            android:alpha="0.3"/>
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:background="@drawable/bg_dot"
+                    android:backgroundTint="@color/white"
+                    android:src="@drawable/ic_back_arrow"
+                    app:tint="@color/black"
+                    android:padding="12dp"
+                    android:layout_marginStart="15dp"
+                    android:scaleType="centerInside"
+                    android:elevation="4dp"
+                    android:contentDescription="Back"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+                <TextView
+                    android:id="@+id/tvHeaderTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Guest Details"
+                    android:textSize="22sp"
+                    android:fontFamily="sans-serif-black"
+                    android:textColor="@color/black"
+                    android:letterSpacing="-0.01"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -181,6 +207,70 @@
                 app:elevation="4dp"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/screen_background"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        android:elevation="100dp">
+
+        <LinearLayout
+            android:id="@+id/dotsLayout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+            <View
+                android:id="@+id/dot3"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+            <View
+                android:id="@+id/dot4"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:text="Adding Guests..."
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/dotsLayout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
     <FrameLayout
         android:id="@+id/capacityLimitOverlay"

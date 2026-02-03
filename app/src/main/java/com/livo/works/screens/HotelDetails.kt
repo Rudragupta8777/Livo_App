@@ -17,8 +17,7 @@ import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.viewpager2.widget.ViewPager2 // IMPORT THIS
-import com.bumptech.glide.Glide
+import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.chip.Chip
 import com.livo.works.Hotel.data.HotelSummary
 import com.livo.works.R
@@ -43,7 +42,8 @@ class HotelDetails : AppCompatActivity() {
     private lateinit var binding: ActivityHotelDetailsBinding
     private val viewModel: HotelViewModel by viewModels()
     private lateinit var roomAdapter: RoomAdapter
-    private val headerImageAdapter = HotelAdapter.HotelImageAdapter()
+    private val headerImageAdapter = HotelAdapter.HotelImageAdapter {
+    }
 
     private var currentLat: Double = 0.0
     private var currentLng: Double = 0.0
@@ -55,7 +55,7 @@ class HotelDetails : AppCompatActivity() {
         setContentView(binding.root)
         enableEdgeToEdge()
 
-        setupHeaderViewPager() // Setup Header
+        setupHeaderViewPager()
         setupRoomRecyclerView()
 
         // Map Click Listener

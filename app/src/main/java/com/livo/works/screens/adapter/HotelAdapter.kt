@@ -27,11 +27,12 @@ class HotelAdapter(
         holder.bind(getItem(position))
     }
 
-    class HotelImageAdapter : ListAdapter<String, HotelImageAdapter.ImageViewHolder>(ImageDiffCallback()) {
-        inner class ImageHolder(val imageView: ImageView) : RecyclerView.ViewHolder(imageView)
+    class HotelImageAdapter(
+        private val onImageClicked: () -> Unit
+    ) : ListAdapter<String, HotelImageAdapter.ImageViewHolder>(ImageDiffCallback()) {
+        inner class ImageViewHolder(val imageView: ImageView) : RecyclerView.ViewHolder(imageView)
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {
-            // Re-using the simple ImageView Layout
             val view = LayoutInflater.from(parent.context).inflate(R.layout.item_hotel_image, parent, false)
             return ImageViewHolder(view as ImageView)
         }
@@ -43,14 +44,25 @@ class HotelAdapter(
                 .centerCrop()
                 .placeholder(R.color.text_input_stroke)
                 .into(holder.imageView)
-        }
 
-        class ImageViewHolder(val imageView: ImageView) : RecyclerView.ViewHolder(imageView)
+            // Handle click on the individual image
+            holder.itemView.setOnClickListener {
+                onImageClicked()
+            }
+        }
     }
 
+    // --- MAIN HOTEL VIEW HOLDER ---
     inner class HotelViewHolder(private val binding: ItemHotelBinding) : RecyclerView.ViewHolder(binding.root) {
 
-        private val imageAdapter = HotelImageAdapter()
+        private var currentHotelId: Long = -1
+
+        // Initialize Inner Adapter with the click callback
+        private val imageAdapter = HotelImageAdapter {
+            if (currentHotelId != -1L) {
+                onHotelClick(currentHotelId)
+            }
+        }
 
         init {
             binding.vpHotelImages.adapter = imageAdapter
@@ -67,6 +79,8 @@ class HotelAdapter(
         }
 
         fun bind(hotel: HotelSummary) {
+            currentHotelId = hotel.id
+
             binding.apply {
                 tvHotelName.text = hotel.name
                 tvCity.text = hotel.city
@@ -89,6 +103,7 @@ class HotelAdapter(
                     tvImageCount.visibility = android.view.View.GONE
                 }
 
+                // Handle click on the rest of the card (text area)
                 root.setOnClickListener { onHotelClick(hotel.id) }
             }
         }

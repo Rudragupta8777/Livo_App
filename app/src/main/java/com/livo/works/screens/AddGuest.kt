@@ -1,6 +1,8 @@
 package com.livo.works.screens
 
 import android.animation.LayoutTransition
+import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -11,22 +13,28 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.ChipGroup
 import com.livo.works.Booking.data.GuestDto
 import com.livo.works.R
+import com.livo.works.ViewModel.BookingViewModel
 import com.livo.works.databinding.ActivityAddGuestBinding
+import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AddGuest : AppCompatActivity() {
 
     private lateinit var binding: ActivityAddGuestBinding
-    // Note: BookingViewModel removed, logic moved to Payment screen
+    private val bookingViewModel: BookingViewModel by viewModels()
 
     private var bookingId: Long = -1
     private var maxCapacity: Int = 2
     private var currentGuestCount = 0
+    private val dotAnimators = mutableListOf<ObjectAnimator>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,11 +51,16 @@ class AddGuest : AppCompatActivity() {
         setupUI()
         setupCapacityDialog()
         addNewGuestRow()
+        observeViewModel() // Start observing state
     }
 
     private fun setupUI() {
-        binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.btnBack.setOnClickListener {
+            finish()
+        }
         binding.maxCapacity.text = "Add up to $maxCapacity Guests"
+
+        // Enable smooth animations for adding/removing rows
         binding.containerGuests.layoutTransition = LayoutTransition()
 
         binding.btnAddAnother.setOnClickListener {
@@ -59,7 +72,6 @@ class AddGuest : AppCompatActivity() {
         }
 
         binding.btnContinue.setOnClickListener {
-            binding.btnContinue.isEnabled = false
             collectDataAndSubmit()
         }
     }
@@ -143,7 +155,6 @@ class AddGuest : AppCompatActivity() {
     }
 
     private fun collectDataAndSubmit() {
-        // CHANGED: Use ArrayList for Intent passing
         val guestList = ArrayList<GuestDto>()
         var isValid = true
 
@@ -166,19 +177,93 @@ class AddGuest : AppCompatActivity() {
             }
 
             if (isValid) {
-                guestList.add(GuestDto(name, ageStr.toIntOrNull() ?: 18, gender))
+                // IMPORTANT: We use null for userId/id here as they are created by backend
+                guestList.add(GuestDto(name = name, age = ageStr.toIntOrNull() ?: 18, gender = gender))
             }
         }
 
         if (isValid) {
-            val intent = Intent(this, Payment::class.java)
-            intent.putExtra("BOOKING_ID", bookingId)
-            intent.putParcelableArrayListExtra("GUEST_LIST", guestList) // Pass the list
-            startActivity(intent)
-            // No finish() if you want back navigation support
+            // Call API to add guests
+            bookingViewModel.addGuests(bookingId, guestList)
         } else {
             Toast.makeText(this, "Please fill all details", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    private fun observeViewModel() {
+        lifecycleScope.launch {
+            bookingViewModel.addGuestState.collect { state ->
+                when (state) {
+                    is UiState.Loading -> {
+                        showCustomLoading()
+                        binding.btnContinue.isEnabled = false
+                    }
+                    is UiState.Success -> {
+                        hideCustomLoading()
+                        binding.btnContinue.isEnabled = true
+
+                        // Navigate to BookingReview with the API response data
+                        val intent = Intent(this@AddGuest, BookingReview::class.java)
+                        intent.putExtra("BOOKING_DATA", state.data)
+                        startActivity(intent)
+                        // Do not finish() here if you want them to be able to go back and edit guests
+                    }
+                    is UiState.Error -> {
+                        hideCustomLoading()
+                        binding.btnContinue.isEnabled = true
+                        bookingViewModel.resetAddGuestState()
+
+                        if (state.message == "BAD_REQUEST") {
+                            Toast.makeText(this@AddGuest, "Session Expired. Please restart booking.", Toast.LENGTH_LONG).show()
+                            val intent = Intent(this@AddGuest, HotelDetails::class.java)
+                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                            startActivity(intent)
+                            finish()
+                        } else {
+                            Toast.makeText(this@AddGuest, state.message, Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun showCustomLoading() {
+        binding.loadingOverlay.visibility = View.VISIBLE
+        binding.loadingOverlay.alpha = 0f
+        binding.loadingOverlay.animate().alpha(1f).setDuration(300).start()
+
+        val dots = listOf(binding.dot1, binding.dot2, binding.dot3, binding.dot4)
+        dotAnimators.clear()
+
+        dots.forEachIndexed { index, dot ->
+            val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.5f, 1f)
+            val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.5f, 1f)
+            val alpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.5f, 1f)
+
+            val animator = ObjectAnimator.ofPropertyValuesHolder(dot, scaleX, scaleY, alpha)
+            animator.duration = 800
+            animator.repeatCount = ObjectAnimator.INFINITE
+            animator.interpolator = AccelerateDecelerateInterpolator()
+            animator.startDelay = (index * 150).toLong()
+
+            animator.start()
+            dotAnimators.add(animator)
+        }
+    }
+
+    private fun hideCustomLoading() {
+        dotAnimators.forEach { it.cancel() }
+        dotAnimators.clear()
+
+        binding.loadingOverlay.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .withEndAction {
+                binding.loadingOverlay.visibility = View.GONE
+            }
+            .start()
     }
 
     override fun onBackPressed() {

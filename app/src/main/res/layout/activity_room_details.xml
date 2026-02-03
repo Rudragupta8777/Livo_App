@@ -43,8 +43,8 @@
                     android:layout_height="48dp"
                     android:layout_margin="30dp"
                     app:cardCornerRadius="24dp"
-                    app:cardElevation="6dp"
-                    app:cardBackgroundColor="#80000000"
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="#66000000"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
 
@@ -65,7 +65,7 @@
                     android:layout_marginBottom="70dp"
                     app:cardBackgroundColor="#90000000"
                     app:cardCornerRadius="14dp"
-                    app:cardElevation="4dp"
+                    app:cardElevation="0dp"
                     app:strokeWidth="0dp">
 
                     <TextView
@@ -123,9 +123,8 @@
             android:id="@+id/mainContentScroll"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:visibility="invisible"
-            android:scrollbars="none"
-            android:paddingBottom="20dp"
+            android:fillViewport="true"
+            android:overScrollMode="never"
             android:clipToPadding="false"
             tools:visibility="visible">
 
@@ -135,8 +134,7 @@
                 android:orientation="vertical"
                 android:paddingHorizontal="24dp"
                 android:paddingTop="28dp"
-                android:paddingBottom="24dp">
-
+                android:paddingBottom="100dp">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

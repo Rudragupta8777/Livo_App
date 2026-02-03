@@ -18,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PaymentViewModel @Inject constructor(
     private val paymentRepository: PaymentRepository,
+    private val repository: PaymentRepository,
     private val bookingRepository: BookingRepository // Injected BookingRepo
 ) : ViewModel() {
 
@@ -61,7 +62,11 @@ class PaymentViewModel @Inject constructor(
 
     // For manual retry if needed (optional)
     fun startPayment(bookingId: Long) {
-        viewModelScope.launch { initiatePaymentInternal(bookingId) }
+        viewModelScope.launch {
+            repository.initPayment(bookingId, UUID.randomUUID().toString()).collect {
+                _initParamsState.value = it
+            }
+        }
     }
 
     fun verifyPayment(orderId: String, paymentId: String, signature: String) {

@@ -17,5 +17,5 @@ data class BookingData(
     val endDate: String,
     val amount: Double,
     val bookingStatus: String,
-    val guests: List<GuestResponse>? = null
+    val guests: List<GuestDto>
 ) : Parcelable

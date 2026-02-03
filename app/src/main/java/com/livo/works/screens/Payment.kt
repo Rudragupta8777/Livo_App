@@ -9,11 +9,9 @@ import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.livo.works.Booking.data.GuestDto
 import com.livo.works.Payment.data.PaymentInitData
 import com.livo.works.R
 import com.livo.works.ViewModel.PaymentViewModel
@@ -49,13 +47,14 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
 
         startDotAnimation()
 
+        // Get Booking ID directly (Guests were added in previous screen)
         val bookingId = intent.getLongExtra("BOOKING_ID", -1)
-        val guestList = intent.getParcelableArrayListExtra<GuestDto>("GUEST_LIST")
 
-        if (bookingId != -1L && !guestList.isNullOrEmpty() && !isProcessing) {
+        if (bookingId != -1L && !isProcessing) {
             isProcessing = true
-            binding.tvStatus.text = "Finalizing Booking Details..."
-            viewModel.processBookingAndPayment(bookingId, guestList.toList())
+            binding.tvStatus.text = "Securing Connection..."
+            // Call Init Payment directly
+            viewModel.startPayment(bookingId)
         } else if (bookingId == -1L) {
             Toast.makeText(this, "Invalid Booking Data", Toast.LENGTH_SHORT).show()
             finish()
@@ -65,24 +64,23 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
     }
 
     private fun observeStates() {
+        // A. Observe Initialization
         lifecycleScope.launch {
             viewModel.initParamsState.collect { state ->
                 when (state) {
                     is UiState.Loading -> {
-                        if (binding.tvStatus.text == "Finalizing Booking Details...") {
-                            binding.tvStatus.text = "Securing Connection..."
-                        }
+                        binding.tvStatus.text = "Initializing Payment..."
                     }
                     is UiState.Success -> {
                         startRazorpayCheckout(state.data!!)
                     }
                     is UiState.Error -> {
                         isProcessing = false
-                        binding.tvStatus.text = "Process Failed"
+                        binding.tvStatus.text = "Initialization Failed"
                         binding.tvSubStatus.text = state.message
                         Toast.makeText(this@Payment, state.message, Toast.LENGTH_LONG).show()
 
-                        if (state.message == "BAD_REQUEST") {
+                        if (state.message.contains("BAD_REQUEST")) {
                             finish()
                         }
                     }
@@ -91,6 +89,7 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
             }
         }
 
+        // B. Observe Verification
         lifecycleScope.launch {
             viewModel.verifyState.collect { state ->
                 when (state) {
@@ -158,6 +157,9 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
         val checkout = Checkout()
         checkout.setKeyID(data.razorpayKeyId)
 
+        // FIXED: Use standard PNG resource to avoid vector crash
+        checkout.setImage(R.mipmap.ic_launcher)
+
         try {
             val options = JSONObject()
             options.put("name", data.companyName)
@@ -167,7 +169,8 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
             options.put("order_id", data.razorpayOrderId)
             options.put("prefill.email", data.userEmail)
 
-            val primaryColor = getColor(R.color.razorpay)
+            // Theme Color Logic
+            val primaryColor = getColor(R.color.razorpay) // Ensure this exists in colors.xml
             val hexColor = String.format("#%06X", (0xFFFFFF and primaryColor))
             options.put("theme.color", hexColor)
 

@@ -9,7 +9,6 @@ import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.livo.works.databinding.ActivityBookingSuccessBinding
-import com.livo.works.screens.fragments.BookingFragment
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint

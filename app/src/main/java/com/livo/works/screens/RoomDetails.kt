@@ -32,7 +32,8 @@ class RoomDetails : AppCompatActivity() {
 
     private lateinit var binding: ActivityRoomDetailsBinding
     private val bookingViewModel: BookingViewModel by viewModels()
-    private val imageAdapter = HotelAdapter.HotelImageAdapter()
+    private val imageAdapter = HotelAdapter.HotelImageAdapter {
+    }
     private val dotAnimators = mutableListOf<ObjectAnimator>()
 
     override fun onCreate(savedInstanceState: Bundle?) {

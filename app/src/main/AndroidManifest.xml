@@ -17,6 +17,9 @@
         android:theme="@style/Theme.Livo"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".screens.BookingReview"
+            android:exported="false" />
+        <activity
             android:name=".screens.BookingSuccess"
             android:exported="false" />
         <activity
@@ -55,7 +58,6 @@
         <activity
             android:name=".screens.Onboarding"
             android:exported="false" />
-
         <activity
             android:name=".screens.Splash"
             android:exported="true"
