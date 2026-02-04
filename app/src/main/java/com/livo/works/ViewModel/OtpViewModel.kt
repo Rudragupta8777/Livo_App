@@ -20,8 +20,6 @@ class OtpViewModel @Inject constructor(
 
     private val _verifyState = MutableStateFlow<UiState<UserData>>(UiState.Idle)
     val verifyState = _verifyState.asStateFlow()
-
-    // NEW: State specifically for Resend actions
     private val _resendState = MutableStateFlow<UiState<ResendResponse>>(UiState.Idle)
     val resendState = _resendState.asStateFlow()
 

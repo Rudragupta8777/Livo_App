@@ -19,7 +19,6 @@ class HomeViewModel @Inject constructor(
     private val _bestHotelsState = MutableStateFlow<UiState<List<BestHotelDto>>>(UiState.Loading)
     val bestHotelsState: StateFlow<UiState<List<BestHotelDto>>> = _bestHotelsState
 
-    // We keep init to load data immediately on first creation
     init {
         fetchBestHotels(forceRefresh = false)
     }

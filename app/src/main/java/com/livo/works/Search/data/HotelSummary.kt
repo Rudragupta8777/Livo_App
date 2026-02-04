@@ -1,4 +1,4 @@
-package com.livo.works.Hotel.data
+package com.livo.works.Search.data
 
 data class HotelSummary(
     val id: Long,

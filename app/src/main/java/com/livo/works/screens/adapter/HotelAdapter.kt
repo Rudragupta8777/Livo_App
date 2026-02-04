@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
-import com.livo.works.Hotel.data.HotelSummary
+import com.livo.works.Search.data.HotelSummary
 import com.livo.works.R
 import com.livo.works.databinding.ItemHotelBinding
 import java.text.NumberFormat

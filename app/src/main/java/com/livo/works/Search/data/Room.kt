@@ -1,4 +1,4 @@
-package com.livo.works.Hotel.data
+package com.livo.works.Search.data
 
 import android.os.Parcelable
 import kotlinx.parcelize.Parcelize

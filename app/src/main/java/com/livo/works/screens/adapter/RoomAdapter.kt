@@ -7,7 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.livo.works.Hotel.data.Room
+import com.livo.works.Search.data.Room
 import com.livo.works.R
 import com.livo.works.databinding.ItemRoomBinding
 import java.text.NumberFormat

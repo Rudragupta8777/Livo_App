@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.chip.Chip
-import com.livo.works.Hotel.data.Room
+import com.livo.works.Search.data.Room
 import com.livo.works.R
 import com.livo.works.ViewModel.BookingViewModel
 import com.livo.works.databinding.ActivityRoomDetailsBinding

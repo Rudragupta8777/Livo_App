@@ -19,7 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.chip.Chip
-import com.livo.works.Hotel.data.HotelSummary
+import com.livo.works.Search.data.HotelSummary
 import com.livo.works.R
 import com.livo.works.ViewModel.HotelViewModel
 import com.livo.works.databinding.ActivityHotelDetailsBinding

@@ -2,7 +2,6 @@ package com.livo.works.di
 
 import com.livo.works.Api.AuthApiService
 import com.livo.works.Api.BookingApiService
-import com.livo.works.Api.HotelApiService
 import com.livo.works.Api.PaymentApiService
 import com.livo.works.Api.SearchApiService
 import com.livo.works.BuildConfig
@@ -84,12 +83,6 @@ object NetworkModule {
     @Singleton
     fun provideAuthApiService(@Named("AuthRetrofit") retrofit: Retrofit): AuthApiService {
         return retrofit.create(AuthApiService::class.java)
-    }
-
-    @Provides
-    @Singleton
-    fun provideHotelApiService(@Named("ApiRetrofit") retrofit: Retrofit): HotelApiService {
-        return retrofit.create(HotelApiService::class.java)
     }
 
     @Provides

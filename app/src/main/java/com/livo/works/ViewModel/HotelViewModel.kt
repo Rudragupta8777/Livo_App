@@ -2,9 +2,9 @@ package com.livo.works.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.livo.works.Hotel.data.HotelDetailsResponse
-import com.livo.works.Hotel.data.HotelSearchResponse
-import com.livo.works.Hotel.repository.HotelRepository
+import com.livo.works.Search.data.HotelDetailsResponse
+import com.livo.works.Search.data.HotelSearchResponse
+import com.livo.works.Search.repository.SearchRepository
 import com.livo.works.util.UiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +14,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HotelViewModel @Inject constructor(
-    private val repository: HotelRepository
+    private val repository: SearchRepository
 ) : ViewModel() {
     private val _searchState = MutableStateFlow<UiState<HotelSearchResponse>>(UiState.Idle)
     val searchState = _searchState.asStateFlow()
