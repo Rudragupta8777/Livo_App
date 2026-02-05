@@ -17,6 +17,9 @@
         android:theme="@style/Theme.Livo"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".screens.BookingDetails"
+            android:exported="false" />
+        <activity
             android:name=".screens.BookingReview"
             android:exported="false" />
         <activity
