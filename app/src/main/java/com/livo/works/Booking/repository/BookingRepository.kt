@@ -107,4 +107,21 @@ class BookingRepository @Inject constructor(
             emit(UiState.Error("Network Error: ${e.message}"))
         }
     }
+
+    suspend fun cancelBooking(bookingId: Long) = flow {
+        emit(UiState.Loading)
+        try {
+            val response = api.cancelBooking(bookingId)
+
+            if (response.isSuccessful && response.body()?.data != null) {
+                emit(UiState.Success(response.body()!!.data!!))
+            } else {
+                val errorMsg = response.body()?.error?.toString() ?: "Failed to cancel booking"
+                if (response.code() == 401) emit(UiState.SessionExpired)
+                else emit(UiState.Error(errorMsg))
+            }
+        } catch (e: Exception) {
+            emit(UiState.Error("Network Error: ${e.message}"))
+        }
+    }
 }

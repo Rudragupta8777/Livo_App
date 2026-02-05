@@ -27,4 +27,9 @@ interface BookingApiService {
     suspend fun getBookingDetails(
         @Path("id") id: Long
     ): Response<BookingDetailsResponse>
+
+    @POST("bookings/{id}/cancel")
+    suspend fun cancelBooking(
+        @Path("id") bookingId: Long
+    ): Response<BookingDetailsResponse>
 }

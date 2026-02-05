@@ -8,13 +8,17 @@ import android.view.HapticFeedbackConstants
 import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.livo.works.databinding.ActivityBookingSuccessBinding
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class BookingSuccess : AppCompatActivity() {
 
     private lateinit var binding: ActivityBookingSuccessBinding
+    private var bookingId: Long = -1
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,27 +26,14 @@ class BookingSuccess : AppCompatActivity() {
         binding = ActivityBookingSuccessBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // 1. Get the Booking ID passed from Checkout Screen
+        bookingId = intent.getLongExtra("BOOKING_ID", -1)
+
         binding.successCard.alpha = 0f
         binding.successCard.scaleX = 0.8f
         binding.successCard.scaleY = 0.8f
 
-        binding.btnGoHome.translationY = 200f
-        binding.btnGoHome.alpha = 0f
-
-        setupListeners()
         startPremiumAnimation()
-    }
-
-    private fun setupListeners() {
-        binding.btnGoHome.setOnClickListener {
-            it.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
-
-            val intent = Intent(this, Dashboard::class.java)
-            intent.putExtra("OPEN_TAB", "BOOKINGS")
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            startActivity(intent)
-            overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
-        }
     }
 
     private fun startPremiumAnimation() {
@@ -64,22 +55,43 @@ class BookingSuccess : AppCompatActivity() {
     private fun playLottieAndFeedback() {
         binding.lottieSuccess.playAnimation()
 
-        // Step 3: Timed Vibration (Sync with checkmark appearing)
+        // Haptic Feedback
         Handler(Looper.getMainLooper()).postDelayed({
             binding.root.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
-        }, 600) // Adjust this delay to match when the checkmark actually "hits" in your specific JSON
+        }, 600)
 
-        // Step 4: Fade in Text
+        // Fade in Text
         binding.tvTitle.animate().alpha(1f).setDuration(400).setStartDelay(300).start()
         binding.tvSubtitle.animate().alpha(1f).setDuration(400).setStartDelay(400).start()
 
-        // Step 5: Slide up Button
-        binding.btnGoHome.animate()
-            .translationY(0f)
-            .alpha(1f)
-            .setDuration(600)
-            .setInterpolator(OvershootInterpolator())
-            .setStartDelay(800)
-            .start()
+        // Step 3: Wait 3 seconds, then redirect
+        lifecycleScope.launch {
+            delay(3000)
+            navigateToDetails()
+        }
+    }
+
+    private fun navigateToDetails() {
+        if (bookingId == -1L) {
+            // Safety: If ID is missing, go to Dashboard (Bookings Tab) instead of crashing details
+            val intent = Intent(this, Dashboard::class.java)
+            intent.putExtra("OPEN_TAB", "BOOKINGS")
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+        } else {
+            // Normal Flow: Dashboard -> Booking Details
+            val detailsIntent = Intent(this, BookingDetails::class.java)
+            detailsIntent.putExtra("BOOKING_ID", bookingId)
+
+            val dashboardIntent = Intent(this, Dashboard::class.java)
+            dashboardIntent.putExtra("OPEN_TAB", "BOOKINGS")
+            dashboardIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+
+            // Start both: Dashboard is the "base", Details is on "top"
+            startActivities(arrayOf(dashboardIntent, detailsIntent))
+        }
+
+        overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)
+        finish()
     }
 }

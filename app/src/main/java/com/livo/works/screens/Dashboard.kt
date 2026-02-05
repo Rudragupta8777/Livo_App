@@ -21,16 +21,19 @@ class Dashboard : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        // 1. Correctly initialize ViewBinding
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 2. Load Default Fragment
-        if (savedInstanceState == null) {
-            loadFragment(HomeFragment())
-        }
+        // 1. Setup Listener (Extracted to function so we can reuse it)
+        setupBottomNavListener()
 
-        // 3. Handle Bottom Navigation Clicks
+        // 2. Handle Navigation Logic
+        if (savedInstanceState == null) {
+            handleNavigationIntent()
+        }
+    }
+
+    private fun setupBottomNavListener() {
         binding.bottomNav.setOnItemSelectedListener { item ->
             val fragment = when (item.itemId) {
                 R.id.nav_home -> HomeFragment()
@@ -45,9 +48,16 @@ class Dashboard : AppCompatActivity() {
             }
             false
         }
+    }
 
-        if (intent.getStringExtra("OPEN_TAB") == "BOOKINGS") {
+    private fun handleNavigationIntent() {
+        val openTab = intent.getStringExtra("OPEN_TAB")
+
+        if (openTab == "BOOKINGS") {
             binding.bottomNav.selectedItemId = R.id.nav_booking
+        } else {
+            // Default
+            loadFragment(HomeFragment())
         }
     }
 

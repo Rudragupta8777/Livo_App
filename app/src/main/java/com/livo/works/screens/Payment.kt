@@ -33,12 +33,14 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
     private val dotAnimators = mutableListOf<ObjectAnimator>()
     private var isProcessing = false
 
+    // FIX 1: Make bookingId a class property
+    private var bookingId: Long = -1
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityPaymentBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Handle Back Press
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 navigateToHotelDetails()
@@ -47,13 +49,12 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
 
         startDotAnimation()
 
-        // Get Booking ID directly (Guests were added in previous screen)
-        val bookingId = intent.getLongExtra("BOOKING_ID", -1)
+        // FIX 2: Assign value to class property
+        bookingId = intent.getLongExtra("BOOKING_ID", -1)
 
         if (bookingId != -1L && !isProcessing) {
             isProcessing = true
             binding.tvStatus.text = "Securing Connection..."
-            // Call Init Payment directly
             viewModel.startPayment(bookingId)
         } else if (bookingId == -1L) {
             Toast.makeText(this, "Invalid Booking Data", Toast.LENGTH_SHORT).show()
@@ -64,7 +65,6 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
     }
 
     private fun observeStates() {
-        // A. Observe Initialization
         lifecycleScope.launch {
             viewModel.initParamsState.collect { state ->
                 when (state) {
@@ -89,7 +89,6 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
             }
         }
 
-        // B. Observe Verification
         lifecycleScope.launch {
             viewModel.verifyState.collect { state ->
                 when (state) {
@@ -99,7 +98,12 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
                     }
                     is UiState.Success -> {
                         binding.tvStatus.text = "Payment Confirmed!"
+
                         val intent = Intent(this@Payment, BookingSuccess::class.java)
+
+                        // FIX 3: Pass the ID here!
+                        intent.putExtra("BOOKING_ID", bookingId)
+
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
                         finish()
@@ -156,8 +160,6 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
         razorpayOrderId = data.razorpayOrderId
         val checkout = Checkout()
         checkout.setKeyID(data.razorpayKeyId)
-
-        // FIXED: Use standard PNG resource to avoid vector crash
         checkout.setImage(R.mipmap.ic_launcher)
 
         try {
@@ -169,8 +171,7 @@ class Payment : AppCompatActivity(), PaymentResultWithDataListener {
             options.put("order_id", data.razorpayOrderId)
             options.put("prefill.email", data.userEmail)
 
-            // Theme Color Logic
-            val primaryColor = getColor(R.color.razorpay) // Ensure this exists in colors.xml
+            val primaryColor = getColor(R.color.razorpay)
             val hexColor = String.format("#%06X", (0xFFFFFF and primaryColor))
             options.put("theme.color", hexColor)
 

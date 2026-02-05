@@ -47,6 +47,21 @@ class BookingViewModel @Inject constructor(
         }
     }
 
+    private val _cancelBookingState = MutableStateFlow<UiState<BookingDetailsDto>>(UiState.Idle)
+    val cancelBookingState = _cancelBookingState.asStateFlow()
+
+    fun cancelBooking(bookingId: Long) {
+        viewModelScope.launch {
+            repository.cancelBooking(bookingId).collect {
+                _cancelBookingState.value = it
+            }
+        }
+    }
+
+    fun resetCancelState() {
+        _cancelBookingState.value = UiState.Idle
+    }
+
     private val visitIdempotencyKey: String = UUID.randomUUID().toString()
     private val _bookingState = MutableStateFlow<UiState<BookingData>>(UiState.Idle)
     val bookingState: StateFlow<UiState<BookingData>> = _bookingState

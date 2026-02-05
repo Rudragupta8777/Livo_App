@@ -17,7 +17,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="24dp"
+            android:paddingTop="30dp"
             android:paddingBottom="8dp"
             app:contentInsetStart="0dp"
             app:contentInsetEnd="0dp">
@@ -63,6 +63,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/contentScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
@@ -249,10 +250,8 @@
                             </LinearLayout>
                         </LinearLayout>
                     </LinearLayout>
-
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
-
 
             <TextView
                 android:layout_width="wrap_content"
@@ -340,7 +339,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginHorizontal="20dp"
-                android:background="@drawable/bg_rounded_white_16"
+                android:background="@drawable/bg_rounded_white_16dp"
                 android:padding="20dp"
                 android:elevation="0dp"
                 android:layout_marginBottom="20dp"/>
@@ -351,7 +350,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginHorizontal="20dp"
-                android:layout_marginTop="10dp"
+                android:layout_marginTop="8dp"
                 android:visibility="gone">
 
                 <TextView
@@ -368,7 +367,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
                     android:text="Cancel Booking"
-                    android:layout_marginBottom="25dp"
                     android:textColor="#C62828"
                     app:backgroundTint="#FFEBEE"
                     app:cornerRadius="16dp"
@@ -380,11 +378,68 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:visibility="gone"/>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#99FFFFFF"
+        android:visibility="gone"
+        android:elevation="20dp"
+        android:clickable="true"
+        android:focusable="true">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <View
+                android:id="@+id/dot1"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+            <View
+                android:id="@+id/dot2"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+            <View
+                android:id="@+id/dot3"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+            <View
+                android:id="@+id/dot4"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_margin="6dp"
+                android:background="@drawable/bg_dot"/>
+
+        </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Fetching details..."
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="135dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
