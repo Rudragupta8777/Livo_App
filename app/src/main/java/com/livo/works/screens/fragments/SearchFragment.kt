@@ -26,6 +26,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.transition.AutoTransition
 import androidx.transition.TransitionManager
 import com.google.android.material.button.MaterialButton
@@ -70,13 +71,13 @@ class SearchFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Set Initial Text (Only Rooms)
         binding.tvGuestDisplay.text = "1 Room"
 
         initDefaultDates()
         setupRecyclerView()
         setupClickListeners()
         observeSearch()
+        observePagination() // NEW
     }
 
     private fun initDefaultDates() {
@@ -106,20 +107,34 @@ class SearchFragment : Fragment() {
             startActivity(intent)
         }
 
-        binding.rvHotels.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = hotelAdapter
-            setHasFixedSize(true)
-        }
+        val layoutManager = LinearLayoutManager(context)
+        binding.rvHotels.layoutManager = layoutManager
+        binding.rvHotels.adapter = hotelAdapter
+        binding.rvHotels.setHasFixedSize(true)
+
+        // SCROLL LISTENER
+        binding.rvHotels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+                if (dy > 0) {
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2
+                        && firstVisibleItemPosition >= 0) {
+                        viewModel.loadNextPage()
+                    }
+                }
+            }
+        })
     }
 
     private fun setupClickListeners() {
-        // Date Picker
         binding.cvDateRange.setOnClickListener {
             showDateRangePicker()
         }
 
-        // Guest Popup
         binding.layoutGuests.setOnClickListener {
             showGuestSelectorDialog()
         }
@@ -151,7 +166,7 @@ class SearchFragment : Fragment() {
 
     private fun toggleSearchCard(expanded: Boolean) {
         val transition = AutoTransition()
-        transition.duration = 300 // 300ms animation
+        transition.duration = 300
 
         TransitionManager.beginDelayedTransition(binding.appBarLayout, transition)
 
@@ -202,7 +217,6 @@ class SearchFragment : Fragment() {
             roomCount = tempRooms
             adultCount = tempRooms * 2
 
-            // CHANGED: Show ONLY Rooms (e.g. "3 Rooms")
             val roomText = if (roomCount == 1) "1 Room" else "$roomCount Rooms"
             binding.tvGuestDisplay.text = roomText
 
@@ -214,7 +228,7 @@ class SearchFragment : Fragment() {
 
     private fun showDateRangePicker() {
         val constraintsBuilder = CalendarConstraints.Builder()
-            .setValidator(DateValidatorPointForward.now())
+            .setValidator(DateValidatorPointForward.from(MaterialDatePicker.todayInUtcMilliseconds()))
 
         val datePicker = MaterialDatePicker.Builder.dateRangePicker()
             .setTitleText("Select Dates")
@@ -230,8 +244,8 @@ class SearchFragment : Fragment() {
             val endDate = Date(selection.second)
 
             selectedStartDate = apiDateFormat.format(startDate)
-
             binding.tvCheckInDate.text = uiDateFormat.format(startDate)
+
             binding.tvCheckOutDate.text = uiDateFormat.format(endDate)
 
             val cal = Calendar.getInstance()
@@ -241,6 +255,14 @@ class SearchFragment : Fragment() {
         }
 
         datePicker.show(parentFragmentManager, "DATE_PICKER")
+    }
+
+    private fun observePagination() {
+        lifecycleScope.launch {
+            viewModel.isPaginating.collect { isPaginating ->
+                binding.paginationProgressBar.visibility = if (isPaginating) View.VISIBLE else View.GONE
+            }
+        }
     }
 
     private fun observeSearch() {
@@ -259,7 +281,9 @@ class SearchFragment : Fragment() {
                     }
                     is UiState.Error -> {
                         hideLoading()
-                        Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                        if (hotelAdapter.itemCount == 0) {
+                            Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                        }
                     }
                     else -> {}
                 }

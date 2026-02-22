@@ -6,6 +6,7 @@ import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface BookingApiService {
 
@@ -20,9 +21,6 @@ interface BookingApiService {
         @Body guests: List<GuestDto>?
     ): Response<BookingResponse>
 
-    @GET("bookings")
-    suspend fun getMyBookings(): Response<BookingListResponse>
-
     @GET("bookings/{id}")
     suspend fun getBookingDetails(
         @Path("id") id: Long
@@ -32,4 +30,10 @@ interface BookingApiService {
     suspend fun cancelBooking(
         @Path("id") bookingId: Long
     ): Response<BookingDetailsResponse>
+
+    @GET("bookings")
+    suspend fun getMyBookings(
+        @Query("page") page: Int,
+        @Query("size") size: Int = 10
+    ):Response<BookingListResponse>
 }

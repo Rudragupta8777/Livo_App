@@ -15,22 +15,33 @@ import javax.inject.Singleton
 class BookingRepository @Inject constructor(
     private val api: BookingApiService
 ) {
-    private var cachedBookings: List<BookingSummaryDto>? = null
+    private var cachedBookings: MutableList<BookingSummaryDto> = mutableListOf()
+    private var lastLoadedPage = -1
+    suspend fun getMyBookings(forceRefresh: Boolean = false, page: Int = 0): Flow<UiState<List<BookingSummaryDto>>> = flow {
 
-    suspend fun getMyBookings(forceRefresh: Boolean = false): Flow<UiState<List<BookingSummaryDto>>> = flow {
-        if (!forceRefresh && cachedBookings != null) {
-            emit(UiState.Success(cachedBookings!!))
-            return@flow
+        if (!forceRefresh && page == 0 && cachedBookings.isNotEmpty()) {
+            emit(UiState.Success(ArrayList(cachedBookings)))
         }
 
-        emit(UiState.Loading)
+        if (page == 0) {
+            emit(UiState.Loading)
+        }
+
         try {
-            val response = api.getMyBookings()
+            val response = api.getMyBookings(page, 10)
 
             if (response.isSuccessful && response.body()?.data != null) {
-                val bookingList = response.body()!!.data!!.content
-                cachedBookings = bookingList
-                emit(UiState.Success(bookingList))
+                val pagedResponse = response.body()!!.data!!
+                val newItems = pagedResponse.content
+
+                if (forceRefresh || page == 0) {
+                    cachedBookings.clear()
+                }
+
+                cachedBookings.addAll(newItems)
+                lastLoadedPage = page
+
+                emit(UiState.Success(ArrayList(cachedBookings)))
             } else {
                 val errorMsg = "Failed to fetch bookings"
                 if (response.code() == 401) emit(UiState.SessionExpired)
@@ -41,24 +52,16 @@ class BookingRepository @Inject constructor(
         }
     }
 
-    suspend fun initBooking(
-        roomId: Long,
-        start: String,
-        end: String,
-        count: Int,
-        idempotencyKey: String
-    ) = flow {
+    suspend fun initBooking(roomId: Long, start: String, end: String, count: Int, idempotencyKey: String) = flow {
         emit(UiState.Loading)
         try {
             val request = BookingInitRequest(roomId, start, end, count, idempotencyKey)
             val response = api.initBooking(request)
-
             if (response.isSuccessful && response.body()?.data != null) {
                 emit(UiState.Success(response.body()!!.data))
             } else {
                 val errorBody = response.body()
                 val errorMsg = errorBody?.error?.message ?: "Booking Failed"
-
                 if (response.code() == 400 && errorMsg == "Booking is already initiated.") {
                     emit(UiState.Error("ALREADY_INITIATED"))
                 } else if (response.code() == 401) {
@@ -76,7 +79,6 @@ class BookingRepository @Inject constructor(
         emit(UiState.Loading)
         try {
             val response = api.addGuests(bookingId, guests)
-
             if (response.isSuccessful && response.body()?.data != null) {
                 emit(UiState.Success(response.body()!!.data))
             } else {
@@ -94,9 +96,7 @@ class BookingRepository @Inject constructor(
         try {
             val response = api.getBookingDetails(bookingId)
             val data = response.body()?.data
-
             if (response.isSuccessful && data != null) {
-                // Now kotlin knows 'data' is not null
                 emit(UiState.Success(data))
             } else {
                 val errorMsg = response.body()?.error?.toString() ?: "Failed to fetch details"
@@ -112,7 +112,6 @@ class BookingRepository @Inject constructor(
         emit(UiState.Loading)
         try {
             val response = api.cancelBooking(bookingId)
-
             if (response.isSuccessful && response.body()?.data != null) {
                 emit(UiState.Success(response.body()!!.data!!))
             } else {

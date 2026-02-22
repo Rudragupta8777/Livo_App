@@ -72,7 +72,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:inputType="textCapWords"
-                            android:text="Indore"
+                            android:text="Goa"
                             android:textColor="@color/black"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
@@ -244,6 +244,7 @@
         android:layout_height="match_parent"
         android:paddingHorizontal="16dp"
         android:paddingTop="16dp"
+        android:layout_marginBottom="50dp"
         android:clipToPadding="false"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_hotel"/>
@@ -311,5 +312,17 @@
             app:layout_constraintStart_toStartOf="parent"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ProgressBar
+        android:id="@+id/paginationProgressBar"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_dot"
+        android:backgroundTint="@color/white"
+        android:elevation="12dp"
+        android:padding="8dp"
+        android:visibility="gone" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

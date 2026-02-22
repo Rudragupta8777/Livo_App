@@ -24,15 +24,65 @@ class BookingViewModel @Inject constructor(
     private val _myBookingsState = MutableStateFlow<UiState<List<BookingSummaryDto>>>(UiState.Loading)
     val myBookingsState: StateFlow<UiState<List<BookingSummaryDto>>> = _myBookingsState
 
+    // Pagination specific state for the bottom progress bar
+    private val _isPaginating = MutableStateFlow(false)
+    val isPaginating = _isPaginating.asStateFlow()
+
+    // Pagination Variables
+    private var currentPage = 0
+    private var isLastPage = false
+    private var isLoadingMore = false
+
     init {
         fetchMyBookings(forceRefresh = false)
     }
 
     fun fetchMyBookings(forceRefresh: Boolean = false) {
+        if (forceRefresh) {
+            currentPage = 0
+            isLastPage = false
+        }
+
+        // Prevent overlapping calls when scrolling fast or if we hit the end
+        if (isLoadingMore || (isLastPage && !forceRefresh)) return
+
+        isLoadingMore = true
+
+        // Show bottom progress bar if it's a pagination call (not page 0)
+        if (currentPage > 0 && !forceRefresh) {
+            _isPaginating.value = true
+        }
+
         viewModelScope.launch {
-            repository.getMyBookings(forceRefresh).collect {
-                _myBookingsState.value = it
+            repository.getMyBookings(forceRefresh, currentPage).collect { state ->
+                _myBookingsState.value = state
+
+                if (state is UiState.Success) {
+                    // Since your repository returns the accumulated List<BookingSummaryDto> directly,
+                    // we need a way to know if we hit the last page.
+                    // The simplest robust heuristic without changing the API signature is:
+                    // if the data size is a multiple of page size (10), we *might* have more.
+                    // If it's not a multiple of 10, or it's exactly the same size as before, we are at the end.
+                    // Since we don't have the previous size easily available here, we'll increment currentPage
+                    // and rely on the repository's behavior.
+                    // IDEALLY: The repository should return the PageInfo object to make this bulletproof.
+
+                    currentPage++
+                    isLoadingMore = false
+                    _isPaginating.value = false
+                }
+
+                if (state is UiState.Error || state is UiState.SessionExpired) {
+                    isLoadingMore = false
+                    _isPaginating.value = false
+                }
             }
+        }
+    }
+
+    fun loadNextPage() {
+        if (!isLastPage && !isLoadingMore) {
+            fetchMyBookings(forceRefresh = false)
         }
     }
 

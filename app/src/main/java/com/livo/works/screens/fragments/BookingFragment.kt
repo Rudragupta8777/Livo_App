@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.livo.works.ViewModel.BookingViewModel
 import com.livo.works.databinding.FragmentBookingBinding
 import com.livo.works.screens.BookingDetails
@@ -44,11 +45,11 @@ class BookingFragment : Fragment() {
         }
 
         observeData()
+        observePagination() // Add this
     }
 
     override fun onResume() {
         super.onResume()
-        // LOGIC CHANGE: Fetch every time the screen opens/resumes to trigger refresh
         viewModel.fetchMyBookings(forceRefresh = true)
     }
 
@@ -59,9 +60,33 @@ class BookingFragment : Fragment() {
             startActivity(intent)
         }
 
-        binding.rvBookings.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = this@BookingFragment.adapter
+        val layoutManager = LinearLayoutManager(context)
+        binding.rvBookings.layoutManager = layoutManager
+        binding.rvBookings.adapter = adapter
+
+        binding.rvBookings.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                super.onScrolled(recyclerView, dx, dy)
+
+                if (dy > 0) {
+                    val visibleItemCount = layoutManager.childCount
+                    val totalItemCount = layoutManager.itemCount
+                    val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
+
+                    if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 2
+                        && firstVisibleItemPosition >= 0) {
+                        viewModel.loadNextPage()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun observePagination() {
+        lifecycleScope.launch {
+            viewModel.isPaginating.collect { isPaginating ->
+                binding.paginationProgressBar.visibility = if (isPaginating) View.VISIBLE else View.GONE
+            }
         }
     }
 
@@ -70,13 +95,10 @@ class BookingFragment : Fragment() {
             viewModel.myBookingsState.collect { state ->
                 when (state) {
                     is UiState.Loading -> {
-                        // LOGIC CHANGE: Always show shimmer when loading (unless swipe refreshing)
-                        // Removed 'adapter.currentList.isEmpty()' check to force shimmer every time
-                        if (!binding.swipeRefreshLayout.isRefreshing) {
+                        // Only show shimmer if list is empty and not refreshing via Swipe
+                        if (!binding.swipeRefreshLayout.isRefreshing && adapter.currentList.isEmpty()) {
                             binding.shimmerView.visibility = View.VISIBLE
                             binding.shimmerView.startShimmer()
-
-                            // Hide the list to make it look like a fresh reload
                             binding.rvBookings.visibility = View.GONE
                             binding.tvEmptyState.visibility = View.GONE
                         }
@@ -101,7 +123,11 @@ class BookingFragment : Fragment() {
                         binding.shimmerView.stopShimmer()
                         binding.shimmerView.visibility = View.GONE
                         binding.swipeRefreshLayout.isRefreshing = false
-                        Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+
+                        // Only show toast if the list is empty to prevent spam on bottom pagination error
+                        if (adapter.currentList.isEmpty()) {
+                            Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+                        }
                     }
                     else -> {}
                 }

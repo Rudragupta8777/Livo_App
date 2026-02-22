@@ -13,12 +13,6 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface SearchApiService {
-
-    @POST("hotels/search")
-    suspend fun searchHotels(
-        @Body request: HotelSearchRequest
-    ): Response<ApiResponse<HotelSearchResponse>>
-
     @GET("hotels/{id}")
     suspend fun getHotelDetails(
         @Path("id") id: Long,
@@ -29,4 +23,11 @@ interface SearchApiService {
 
     @GET("hotels/best")
     suspend fun getBestHotels(): Response<BestHotelResponse>
+
+    @POST("hotels/search")
+    suspend fun searchHotels(
+        @Body request: HotelSearchRequest,
+        @Query("page") page: Int,
+        @Query("size") size: Int = 10
+    ):Response<ApiResponse<HotelSearchResponse>>
 }

@@ -21,6 +21,16 @@ class HotelViewModel @Inject constructor(
 
     private val _detailsState = MutableStateFlow<UiState<HotelDetailsResponse>>(UiState.Idle)
     val detailsState = _detailsState.asStateFlow()
+    private val _isPaginating = MutableStateFlow(false)
+    val isPaginating = _isPaginating.asStateFlow()
+
+    private var currentPage = 0
+    private var isLastPage = false
+    private var isLoadingMore = false
+    private var lastCity = ""
+    private var lastStart = ""
+    private var lastEnd = ""
+    private var lastRooms = 1
 
     init {
         restoreLastSearch()
@@ -33,11 +43,50 @@ class HotelViewModel @Inject constructor(
         }
     }
 
-    fun searchHotels(city: String, start: String, end: String, rooms: Int) {
+    fun searchHotels(city: String, start: String, end: String, rooms: Int, isNewSearch: Boolean = true) {
+        if (isNewSearch) {
+            currentPage = 0
+            isLastPage = false
+            lastCity = city
+            lastStart = start
+            lastEnd = end
+            lastRooms = rooms
+        }
+
+        // Prevent overlapping calls when scrolling fast
+        if (isLoadingMore || (isLastPage && !isNewSearch)) return
+
+        isLoadingMore = true
+
+        // Show bottom progress bar if it's a pagination call
+        if (!isNewSearch) {
+            _isPaginating.value = true
+        }
+
         viewModelScope.launch {
-            repository.searchHotels(city, start, end, rooms).collect {
-                _searchState.value = it
+            repository.searchHotels(city, start, end, rooms, currentPage).collect { state ->
+                _searchState.value = state
+
+                if (state is UiState.Success) {
+                    state.data?.let { data ->
+                        val pageInfo = data.page
+                        isLastPage = (pageInfo.number + 1) >= pageInfo.totalPages
+                        currentPage++
+                    }
+                }
+
+                // Reset loading flags when API finishes (Success or Error)
+                if (state !is UiState.Loading) {
+                    isLoadingMore = false
+                    _isPaginating.value = false
+                }
             }
+        }
+    }
+
+    fun loadNextPage() {
+        if (!isLastPage && !isLoadingMore) {
+            searchHotels(lastCity, lastStart, lastEnd, lastRooms, isNewSearch = false)
         }
     }
 

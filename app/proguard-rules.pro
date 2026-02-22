@@ -20,5 +20,18 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
+# Razorpay ProGuard Rules
 -keep class com.razorpay.** { *; }
 -dontwarn com.razorpay.**
+
+# Keep generic Javascript interfaces (Required for Razorpay's web view)
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+
+# Keep JSON classes (Razorpay uses them internally)
+-keep class org.json.** { *; }
+-keep interface org.json.** { *; }
+
+# If you are using GSON (likely yes), keep this too just in case
+-keep class com.google.gson.** { *; }

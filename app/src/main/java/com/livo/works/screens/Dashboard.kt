@@ -16,6 +16,12 @@ import dagger.hilt.android.AndroidEntryPoint
 class Dashboard : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardBinding
+    private val homeFragment = HomeFragment()
+    private val searchFragment = SearchFragment()
+    private val bookingFragment = BookingFragment()
+    private val profileFragment = ProfileFragment()
+
+    private var activeFragment: Fragment = homeFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,30 +30,54 @@ class Dashboard : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Setup Listener (Extracted to function so we can reuse it)
-        setupBottomNavListener()
-
-        // 2. Handle Navigation Logic
+        // Add all fragments initially but hide the ones that aren't Home
         if (savedInstanceState == null) {
-            handleNavigationIntent()
+            supportFragmentManager.beginTransaction().apply {
+                add(R.id.fragmentContainer, profileFragment, "4").hide(profileFragment)
+                add(R.id.fragmentContainer, bookingFragment, "3").hide(bookingFragment)
+                add(R.id.fragmentContainer, searchFragment, "2").hide(searchFragment)
+                add(R.id.fragmentContainer, homeFragment, "1")
+            }.commit()
         }
+
+        setupBottomNavListener()
+        handleNavigationIntent()
     }
 
     private fun setupBottomNavListener() {
         binding.bottomNav.setOnItemSelectedListener { item ->
-            val fragment = when (item.itemId) {
-                R.id.nav_home -> HomeFragment()
-                R.id.nav_search -> SearchFragment()
-                R.id.nav_booking -> BookingFragment()
-                R.id.nav_profile -> ProfileFragment()
-                else -> null
+            when (item.itemId) {
+                R.id.nav_home -> {
+                    switchFragment(homeFragment)
+                    return@setOnItemSelectedListener true
+                }
+                R.id.nav_search -> {
+                    switchFragment(searchFragment)
+                    return@setOnItemSelectedListener true
+                }
+                R.id.nav_booking -> {
+                    switchFragment(bookingFragment)
+                    return@setOnItemSelectedListener true
+                }
+                R.id.nav_profile -> {
+                    switchFragment(profileFragment)
+                    return@setOnItemSelectedListener true
+                }
+                else -> false
             }
-            fragment?.let {
-                loadFragment(it)
-                return@setOnItemSelectedListener true
-            }
-            false
         }
+    }
+
+    private fun switchFragment(targetFragment: Fragment) {
+        if (activeFragment == targetFragment) return
+
+        supportFragmentManager.beginTransaction()
+            .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+            .hide(activeFragment)
+            .show(targetFragment)
+            .commit()
+
+        activeFragment = targetFragment
     }
 
     private fun handleNavigationIntent() {
@@ -55,19 +85,6 @@ class Dashboard : AppCompatActivity() {
 
         if (openTab == "BOOKINGS") {
             binding.bottomNav.selectedItemId = R.id.nav_booking
-        } else {
-            // Default
-            loadFragment(HomeFragment())
         }
-    }
-
-    private fun loadFragment(fragment: Fragment) {
-        val transaction = supportFragmentManager.beginTransaction()
-        transaction.setCustomAnimations(
-            android.R.anim.fade_in,
-            android.R.anim.fade_out
-        )
-        transaction.replace(R.id.fragmentContainer, fragment)
-        transaction.commit()
     }
 }
