@@ -9,6 +9,7 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
+import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Provider
 import javax.inject.Singleton
@@ -49,7 +50,6 @@ class AuthAuthenticator @Inject constructor(
         // 3. THREAD-SAFE REFRESH
         return runBlocking {
             mutex.withLock {
-                // Double check inside lock
                 val updatedAccessToken = tokenManager.getAccessToken()
                 val updatedRefreshToken = tokenManager.getRefreshToken()
 
@@ -75,16 +75,20 @@ class AuthAuthenticator @Inject constructor(
                         return@withLock newRequestWithToken(response.request, newTokens.accessToken)
 
                     } else if (refreshResponse.code() in 400..499) {
+                        // ACTUAL EXPIRED/INVALID REFRESH TOKEN - Clear session
                         Log.e(TAG, "Refresh token invalid (${refreshResponse.code()}). Clearing session.")
                         tokenManager.clear()
                         return@withLock null
                     } else {
+                        // SERVER ERROR (5xx) - Do not log the user out!
                         Log.e(TAG, "Server error: ${refreshResponse.code()}")
-                        return@withLock null
+                        throw IOException("Server error during token refresh")
                     }
                 } catch (e: Exception) {
+                    // CRITICAL FIX: Network error (No internet).
+                    // Throw IOException instead of returning null to prevent false 401 Session Expired!
                     Log.e(TAG, "Network error: ${e.message}")
-                    return@withLock null
+                    throw IOException("Network error during token refresh", e)
                 }
             }
         }
