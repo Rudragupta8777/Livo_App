@@ -10,10 +10,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import com.livo.works.Role.repository.RoleRepository
 import com.livo.works.databinding.FragmentProfileBinding
+import com.livo.works.screens.AdminRequests
 import com.livo.works.screens.Login
 import com.livo.works.security.TokenManager
+import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 import javax.inject.Inject
 
@@ -25,8 +30,9 @@ class ProfileFragment : Fragment() {
 
     @Inject
     lateinit var tokenManager: TokenManager
+    @Inject
+    lateinit var roleRepository: RoleRepository
 
-    // 1. Declare an animator variable to manage the blinking effect safely
     private var dotAnimator: ObjectAnimator? = null
 
     override fun onCreateView(
@@ -39,106 +45,65 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         loadAndDecodeUserData()
         setupClickListeners()
     }
 
     private fun loadAndDecodeUserData() {
         val token = tokenManager.getAccessToken()
-
-        if (token.isNullOrEmpty()) {
-            Toast.makeText(requireContext(), "Session Error", Toast.LENGTH_SHORT).show()
-            return
-        }
+        if (token.isNullOrEmpty()) return
 
         try {
             val parts = token.split(".")
-            if (parts.size < 2) return
-
-            val payloadBase64 = parts[1]
-            val payloadBytes = Base64.decode(payloadBase64, Base64.URL_SAFE)
-            val payloadString = String(payloadBytes, Charsets.UTF_8)
-
+            val payloadString = String(Base64.decode(parts[1], Base64.URL_SAFE), Charsets.UTF_8)
             val jsonObject = JSONObject(payloadString)
 
             val name = jsonObject.optString("name", "User")
             val email = jsonObject.optString("email", "No Email")
-
             val rolesArray = jsonObject.optJSONArray("roles")
             val roles = mutableListOf<String>()
-            if (rolesArray != null) {
-                for (i in 0 until rolesArray.length()) {
-                    roles.add(rolesArray.getString(i))
-                }
-            }
+            rolesArray?.let { for (i in 0 until it.length()) roles.add(it.getString(i)) }
 
             binding.tvUserName.text = name
             binding.tvUserEmail.text = email
-
-            if (name.isNotEmpty()) {
-                binding.tvInitials.text = name.substring(0, 1).uppercase()
-            }
+            if (name.isNotEmpty()) binding.tvInitials.text = name.substring(0, 1).uppercase()
 
             val isHotelManager = roles.contains("HOTEL_MANAGER")
             val isLivoInternal = roles.contains("LIVO_INTERNAL")
 
+            // UI Role Tag and Badge Logic
             when {
                 isLivoInternal -> {
-                    // Admin Tag: Soft Green Theme
                     binding.statusBar.visibility = View.VISIBLE
-
                     binding.tvRoleText.text = "ADMIN"
-                    binding.tvRoleText.setTextColor(android.graphics.Color.parseColor("#1B5E20")) // Dark Green Text
-                    binding.indicatorDot.setCardBackgroundColor(android.graphics.Color.parseColor("#4CAF50")) // Bright Green Dot
-                    binding.cvRoleBadge.setCardBackgroundColor(android.graphics.Color.parseColor("#E8F5E9")) // Soft Green BG
-                    binding.cvRoleBadge.strokeColor = android.graphics.Color.parseColor("#C8E6C9") // Green Outline
-
-                    // Floating Crown
+                    binding.tvRoleText.setTextColor(android.graphics.Color.parseColor("#1B5E20"))
+                    binding.indicatorDot.setCardBackgroundColor(android.graphics.Color.parseColor("#4CAF50"))
+                    binding.cvRoleBadge.setCardBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
+                    binding.cvRoleBadge.strokeColor = android.graphics.Color.parseColor("#C8E6C9")
                     binding.cvSpecialBadge.visibility = View.VISIBLE
                     binding.tvBadgeIcon.text = "👑"
-
-                    startBlinkingDot() // Start the animation
+                    startBlinkingDot()
                 }
                 isHotelManager -> {
-                    // Manager Tag: Sleek Monochrome Theme
                     binding.statusBar.visibility = View.VISIBLE
-
                     binding.tvRoleText.text = "HOTEL MANAGER"
-                    binding.tvRoleText.setTextColor(android.graphics.Color.parseColor("#000000")) // Black Text
-                    binding.indicatorDot.setCardBackgroundColor(android.graphics.Color.parseColor("#000000")) // Black Dot
-                    binding.cvRoleBadge.setCardBackgroundColor(android.graphics.Color.parseColor("#F5F5F5")) // Light Grey BG
-                    binding.cvRoleBadge.strokeColor = android.graphics.Color.parseColor("#E0E0E0") // Grey Outline
-
-                    // Floating Star
+                    binding.tvRoleText.setTextColor(android.graphics.Color.parseColor("#1B5E20"))
+                    binding.indicatorDot.setCardBackgroundColor(android.graphics.Color.parseColor("#4CAF50"))
+                    binding.cvRoleBadge.setCardBackgroundColor(android.graphics.Color.parseColor("#E8F5E9"))
+                    binding.cvRoleBadge.strokeColor = android.graphics.Color.parseColor("#C8E6C9")
                     binding.cvSpecialBadge.visibility = View.VISIBLE
                     binding.tvBadgeIcon.text = "🧑‍💼"
-
-                    startBlinkingDot() // Start the animation
+                    startBlinkingDot()
                 }
                 else -> {
-                    // Guest Tag
-                    binding.statusBar.visibility = View.GONE // Hides the entire status bar
-
-                    binding.tvRoleText.text = "GUEST"
-                    binding.tvRoleText.setTextColor(android.graphics.Color.parseColor("#757575")) // Grey Text
-                    binding.indicatorDot.setCardBackgroundColor(android.graphics.Color.parseColor("#9E9E9E")) // Grey Dot
-                    binding.cvRoleBadge.setCardBackgroundColor(android.graphics.Color.parseColor("#FAFAFA")) // Off-white BG
-                    binding.cvRoleBadge.strokeColor = android.graphics.Color.parseColor("#EEEEEE") // Soft Outline
-
+                    binding.statusBar.visibility = View.GONE
                     binding.cvSpecialBadge.visibility = View.GONE
-
-                    dotAnimator?.cancel() // Stop animation if Guest
+                    dotAnimator?.cancel()
                 }
             }
 
-            // 4. Handle Visibility of Action Items
-            if (isLivoInternal) {
-                binding.layoutAdminPanel.visibility = View.VISIBLE
-            } else {
-                binding.layoutAdminPanel.visibility = View.GONE
-            }
-
+            // Action Items Visibility
+            binding.layoutAdminPanel.visibility = if (isLivoInternal) View.VISIBLE else View.GONE
             if (isHotelManager) {
                 binding.btnListHotel.visibility = View.GONE
                 binding.btnManageHotels.visibility = View.VISIBLE
@@ -148,35 +113,29 @@ class ProfileFragment : Fragment() {
             }
 
         } catch (e: Exception) {
-            e.printStackTrace()
-            binding.tvUserName.text = "User"
-            binding.tvUserEmail.text = tokenManager.getEmail()
             binding.cvRoleBadge.visibility = View.GONE
-            binding.cvSpecialBadge.visibility = View.GONE
         }
     }
 
-    // 2. Add the animation method
     private fun startBlinkingDot() {
-        // Cancel any existing animation first to prevent stacking
         dotAnimator?.cancel()
-
-        // Animate the alpha property from 1f (solid) to 0.3f (faded)
         dotAnimator = ObjectAnimator.ofFloat(binding.indicatorDot, View.ALPHA, 1f, 0.3f).apply {
-            duration = 800 // 800ms per fade
-            repeatMode = ValueAnimator.REVERSE // Fade out, then fade back in
-            repeatCount = ValueAnimator.INFINITE // Do it forever
+            duration = 800
+            repeatMode = ValueAnimator.REVERSE
+            repeatCount = ValueAnimator.INFINITE
             start()
         }
     }
 
     private fun setupClickListeners() {
+        // GUEST -> REQUEST HOTEL MANAGER
         binding.btnListHotel.setOnClickListener {
-            Toast.makeText(requireContext(), "Opening Access Request...", Toast.LENGTH_SHORT).show()
+            requestManagerAccess()
         }
 
+        // ADMIN -> OPEN REQUESTS LIST
         binding.btnAdminPanel.setOnClickListener {
-            Toast.makeText(requireContext(), "Opening Admin Panel...", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), AdminRequests::class.java))
         }
 
         binding.btnManageHotels.setOnClickListener {
@@ -188,17 +147,47 @@ class ProfileFragment : Fragment() {
         }
     }
 
+    private fun requestManagerAccess() {
+        android.util.Log.d("ProfileFragment", "🚀 requestManagerAccess triggered")
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            roleRepository.requestHotelManager().collect { state ->
+                when (state) {
+                    is UiState.Loading -> {
+                        android.util.Log.d("ProfileFragment", "⏳ Requesting: Loading...")
+                        binding.btnListHotel.isEnabled = false
+                    }
+                    is UiState.Success -> {
+                        android.util.Log.d("ProfileFragment", "✅ Request: Success (204)")
+                        binding.btnListHotel.isEnabled = true
+                        Toast.makeText(requireContext(), "Access Request Submitted!", Toast.LENGTH_LONG).show()
+                    }
+                    is UiState.Error -> {
+                        android.util.Log.e("ProfileFragment", "❌ Request Error: ${state.message}")
+                        binding.btnListHotel.isEnabled = true
+                        Toast.makeText(requireContext(), "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                    }
+                    is UiState.SessionExpired -> {
+                        android.util.Log.w("ProfileFragment", "🔑 Session Expired during request")
+                        performLogout()
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+
     private fun performLogout() {
         tokenManager.clear()
-        val intent = Intent(requireContext(), Login::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        val intent = Intent(requireContext(), Login::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
         startActivity(intent)
         requireActivity().finish()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // 3. Prevent memory leaks by canceling the animation when the view is destroyed
         dotAnimator?.cancel()
         dotAnimator = null
         _binding = null
