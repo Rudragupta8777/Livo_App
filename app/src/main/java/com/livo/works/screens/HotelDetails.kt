@@ -21,7 +21,7 @@ import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.chip.Chip
 import com.livo.works.Search.data.HotelSummary
 import com.livo.works.R
-import com.livo.works.ViewModel.HotelViewModel
+import com.livo.works.ViewModel.SearchViewModel
 import com.livo.works.databinding.ActivityHotelDetailsBinding
 import com.livo.works.screens.adapter.HotelAdapter
 import com.livo.works.screens.adapter.RoomAdapter
@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 class HotelDetails : AppCompatActivity() {
 
     private lateinit var binding: ActivityHotelDetailsBinding
-    private val viewModel: HotelViewModel by viewModels()
+    private val viewModel: SearchViewModel by viewModels()
     private lateinit var roomAdapter: RoomAdapter
     private val headerImageAdapter = HotelAdapter.HotelImageAdapter {
     }

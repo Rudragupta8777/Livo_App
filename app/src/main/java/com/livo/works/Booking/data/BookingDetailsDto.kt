@@ -14,5 +14,6 @@ data class BookingDetailsDto(
     val amount: Double,
     val createdAt: String,
     val bookingStatus: String,
-    val guests: List<GuestDetailDto>
+    val guests: List<GuestDetailDto>,
+    val refundStatus: String?
 )

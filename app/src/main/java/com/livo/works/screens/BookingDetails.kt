@@ -45,7 +45,6 @@ class BookingDetails : AppCompatActivity() {
         binding = ActivityBookingDetailsBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // 1. Get ID from Intent
         bookingId = intent.getLongExtra("BOOKING_ID", -1)
 
         if (bookingId != -1L) {
@@ -56,7 +55,7 @@ class BookingDetails : AppCompatActivity() {
         }
 
         binding.btnBack.setOnClickListener {
-            finish() // Close Activity
+            finish()
         }
 
         observeDetails()
@@ -91,11 +90,8 @@ class BookingDetails : AppCompatActivity() {
                         stopAnimationsSafe()
                         viewModel.resetCancelState()
 
-                        // Show Cancelled Fragment inside this Activity or Navigate
-                        // Simplest: Show Cancelled Layout overlay or just finish and refresh
-                        // Better: Replace content with Cancelled Fragment
                         supportFragmentManager.beginTransaction()
-                            .replace(android.R.id.content, BookingCancelledFragment()) // Replaces entire view
+                            .replace(android.R.id.content, BookingCancelledFragment())
                             .commit()
                     }
                     is UiState.Error -> {
@@ -140,8 +136,10 @@ class BookingDetails : AppCompatActivity() {
                 tvCheckOutDate.text = data.endDate
             }
 
+            // --- Status & Dynamic Layout Logic ---
             tvStatus.text = data.bookingStatus
             val isConfirmed = data.bookingStatus == "CONFIRMED"
+            val isCancelled = data.bookingStatus == "CANCELLED"
 
             var isDateValidForCancel = false
             if (checkInDateObj != null) {
@@ -157,12 +155,39 @@ class BookingDetails : AppCompatActivity() {
 
             if (isConfirmed) {
                 tvStatus.setBackgroundResource(R.drawable.bg_status_confirmed)
-                layoutCancelSection.visibility = if (isDateValidForCancel) View.VISIBLE else View.GONE
+
+                if (isDateValidForCancel) {
+                    layoutCancelSection.visibility = View.VISIBLE
+                    // Set default warning text and color
+                    tvCancelWarning.text = "Cancellation charges may apply depending on the hotel policy."
+                    tvCancelWarning.setTextColor(ContextCompat.getColor(this@BookingDetails, R.color.on_boarding_description))
+                    btnCancelBooking.visibility = View.VISIBLE
+                } else {
+                    layoutCancelSection.visibility = View.GONE
+                }
+
+            } else if (isCancelled) {
+                tvStatus.setBackgroundResource(R.drawable.bg_status_failed)
+
+                // Show the section, but hide the button
+                layoutCancelSection.visibility = View.VISIBLE
+                btnCancelBooking.visibility = View.GONE
+
+                // Replace warning text with refund status
+                val refundText = if (!data.refundStatus.isNullOrEmpty()) {
+                    "Refund Status: ${data.refundStatus}"
+                } else {
+                    "Refund Status: Processing"
+                }
+                tvCancelWarning.text = refundText
+                tvCancelWarning.setTextColor(Color.parseColor("#C62828")) // Make it red to stand out, or change to standard color
+
             } else {
                 tvStatus.setBackgroundResource(R.drawable.bg_status_failed)
                 layoutCancelSection.visibility = View.GONE
             }
 
+            // --- Guests List ---
             layoutGuestList.removeAllViews()
             data.guests.forEachIndexed { index, guest ->
                 val guestView = TextView(this@BookingDetails)

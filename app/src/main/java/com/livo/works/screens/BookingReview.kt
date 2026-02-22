@@ -3,6 +3,7 @@ package com.livo.works.screens
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.livo.works.Booking.data.BookingData
@@ -24,6 +25,7 @@ class BookingReview : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityBookingReviewBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        enableEdgeToEdge()
 
         bookingData = intent.getParcelableExtra("BOOKING_DATA")
 

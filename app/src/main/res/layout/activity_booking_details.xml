@@ -354,10 +354,11 @@
                 android:visibility="gone">
 
                 <TextView
+                    android:id="@+id/tvCancelWarning"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Cancellation charges may apply depending on the hotel policy. Refunds are usually processed within 5-7 business days."
-                    android:textSize="12sp"
+                    tools:text="Cancellation charges may apply depending on the hotel policy."
+                    android:textSize="13sp"
                     android:textColor="@color/on_boarding_description"
                     android:gravity="center"
                     android:layout_marginBottom="16dp"/>
@@ -367,6 +368,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="60dp"
                     android:text="Cancel Booking"
+                    android:layout_marginBottom="25dp"
                     android:textColor="#C62828"
                     app:backgroundTint="#FFEBEE"
                     app:cornerRadius="16dp"

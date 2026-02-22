@@ -34,7 +34,7 @@ import com.google.android.material.datepicker.CalendarConstraints
 import com.google.android.material.datepicker.DateValidatorPointForward
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.livo.works.R
-import com.livo.works.ViewModel.HotelViewModel
+import com.livo.works.ViewModel.SearchViewModel
 import com.livo.works.databinding.FragmentSearchBinding
 import com.livo.works.screens.HotelDetails
 import com.livo.works.screens.adapter.HotelAdapter
@@ -49,7 +49,7 @@ class SearchFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-    private val viewModel: HotelViewModel by viewModels()
+    private val viewModel: SearchViewModel by viewModels()
     private lateinit var hotelAdapter: HotelAdapter
     private val uiDateFormat = SimpleDateFormat("EEE, MMM dd", Locale.US)
     private val apiDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)

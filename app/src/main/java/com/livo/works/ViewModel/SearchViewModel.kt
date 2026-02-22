@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HotelViewModel @Inject constructor(
+class SearchViewModel @Inject constructor(
     private val repository: SearchRepository
 ) : ViewModel() {
     private val _searchState = MutableStateFlow<UiState<HotelSearchResponse>>(UiState.Idle)
