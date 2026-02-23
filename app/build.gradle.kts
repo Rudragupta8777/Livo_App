@@ -33,6 +33,12 @@ android {
         // 2. Read the property safely
         val backendUrl = localProperties.getProperty("BACKEND_URL") ?: "https://dev.placeholder-url.com/"
         buildConfigField("String", "BACKEND_URL", "\"$backendUrl\"")
+
+        val cloudName = localProperties.getProperty("CLOUD_NAME") ?: "dvxxxxxxxx"
+        buildConfigField("String", "CLOUD_NAME", "\"$cloudName\"")
+
+        val uploadPreset = localProperties.getProperty("UPLOAD_PRESET") ?: "livo_hotel_......"
+        buildConfigField("String", "UPLOAD_PRESET", "\"$uploadPreset\"")
     }
 
     buildFeatures {
@@ -107,4 +113,5 @@ dependencies {
     implementation("com.razorpay:checkout:1.6.38")
 
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 }

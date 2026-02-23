@@ -11,10 +11,12 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.livo.works.Auth.repository.AuthRepository
 import com.livo.works.Role.repository.RoleRepository
 import com.livo.works.databinding.FragmentProfileBinding
 import com.livo.works.screens.AdminRequests
 import com.livo.works.screens.Login
+import com.livo.works.screens.ManagerProperties
 import com.livo.works.security.TokenManager
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
@@ -30,8 +32,11 @@ class ProfileFragment : Fragment() {
 
     @Inject
     lateinit var tokenManager: TokenManager
+
     @Inject
     lateinit var roleRepository: RoleRepository
+    @Inject
+    lateinit var authRepository: AuthRepository
 
     private var dotAnimator: ObjectAnimator? = null
 
@@ -71,7 +76,6 @@ class ProfileFragment : Fragment() {
             val isHotelManager = roles.contains("HOTEL_MANAGER")
             val isLivoInternal = roles.contains("LIVO_INTERNAL")
 
-            // UI Role Tag and Badge Logic
             when {
                 isLivoInternal -> {
                     binding.statusBar.visibility = View.VISIBLE
@@ -102,7 +106,6 @@ class ProfileFragment : Fragment() {
                 }
             }
 
-            // Action Items Visibility
             binding.layoutAdminPanel.visibility = if (isLivoInternal) View.VISIBLE else View.GONE
             if (isHotelManager) {
                 binding.btnListHotel.visibility = View.GONE
@@ -128,48 +131,57 @@ class ProfileFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // GUEST -> REQUEST HOTEL MANAGER
         binding.btnListHotel.setOnClickListener {
             requestManagerAccess()
         }
 
-        // ADMIN -> OPEN REQUESTS LIST
         binding.btnAdminPanel.setOnClickListener {
             startActivity(Intent(requireContext(), AdminRequests::class.java))
         }
 
+        // ONLY THIS WAS CHANGED: Navigate to ManagerPropertiesActivity instead of a Toast
         binding.btnManageHotels.setOnClickListener {
-            Toast.makeText(requireContext(), "Opening Properties...", Toast.LENGTH_SHORT).show()
+            startActivity(Intent(requireContext(), ManagerProperties::class.java))
         }
 
         binding.btnLogout.setOnClickListener {
-            performLogout()
+            handleLogout()
         }
     }
 
     private fun requestManagerAccess() {
-        android.util.Log.d("ProfileFragment", "🚀 requestManagerAccess triggered")
-
         viewLifecycleOwner.lifecycleScope.launch {
             roleRepository.requestHotelManager().collect { state ->
                 when (state) {
-                    is UiState.Loading -> {
-                        android.util.Log.d("ProfileFragment", "⏳ Requesting: Loading...")
-                        binding.btnListHotel.isEnabled = false
-                    }
+                    is UiState.Loading -> binding.btnListHotel.isEnabled = false
                     is UiState.Success -> {
-                        android.util.Log.d("ProfileFragment", "✅ Request: Success (204)")
                         binding.btnListHotel.isEnabled = true
                         Toast.makeText(requireContext(), "Access Request Submitted!", Toast.LENGTH_LONG).show()
                     }
                     is UiState.Error -> {
-                        android.util.Log.e("ProfileFragment", "❌ Request Error: ${state.message}")
                         binding.btnListHotel.isEnabled = true
-                        Toast.makeText(requireContext(), "Error: ${state.message}", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
                     }
-                    is UiState.SessionExpired -> {
-                        android.util.Log.w("ProfileFragment", "🔑 Session Expired during request")
-                        performLogout()
+                    is UiState.SessionExpired -> navigateToLogin()
+                    else -> {}
+                }
+            }
+        }
+    }
+    private fun handleLogout() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            authRepository.logoutUser().collect { state ->
+                when (state) {
+                    is UiState.Loading -> {
+                        binding.btnLogout.isEnabled = false
+                        binding.btnLogout.text = "Logging out..."
+                    }
+                    is UiState.Success -> {
+                        navigateToLogin()
+                    }
+                    is UiState.Error -> {
+                        Toast.makeText(requireContext(), state.message, Toast.LENGTH_SHORT).show()
+                        navigateToLogin()
                     }
                     else -> {}
                 }
@@ -177,8 +189,7 @@ class ProfileFragment : Fragment() {
         }
     }
 
-    private fun performLogout() {
-        tokenManager.clear()
+    private fun navigateToLogin() {
         val intent = Intent(requireContext(), Login::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

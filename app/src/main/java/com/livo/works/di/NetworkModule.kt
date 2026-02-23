@@ -2,6 +2,7 @@ package com.livo.works.di
 
 import com.livo.works.Api.AuthApiService
 import com.livo.works.Api.BookingApiService
+import com.livo.works.Api.ManagerApiService
 import com.livo.works.Api.PaymentApiService
 import com.livo.works.Api.RoleApiService
 import com.livo.works.Api.SearchApiService
@@ -108,6 +109,12 @@ object NetworkModule {
     @Singleton
     fun provideRoleApiService(@Named("ApiRetrofit") retrofit: Retrofit): RoleApiService {
         return retrofit.create(RoleApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideManagerApiService(@Named("ApiRetrofit") retrofit: Retrofit): ManagerApiService {
+        return retrofit.create(ManagerApiService::class.java)
     }
 
     @Provides
