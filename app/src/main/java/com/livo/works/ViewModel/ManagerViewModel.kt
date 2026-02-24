@@ -3,6 +3,7 @@ package com.livo.works.ViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
+import com.livo.works.Manager.data.PagedHotelBookings
 import com.livo.works.Manager.data.PagedManagerHotels
 import com.livo.works.Manager.repository.ManagerRepository
 import com.livo.works.util.UiState
@@ -32,6 +33,66 @@ class ManagerViewModel @Inject constructor(
     private var currentPage = 0
     private var isLastPage = false
     private var isLoadingMore = false
+    private val _hotelBookingsState = MutableStateFlow<UiState<PagedHotelBookings>>(UiState.Idle)
+    val hotelBookingsState = _hotelBookingsState.asStateFlow()
+
+    private val _isBookingsPaginating = MutableStateFlow(false)
+    val isBookingsPaginating = _isBookingsPaginating.asStateFlow()
+
+    private var bookingsCurrentPage = 0
+    private var bookingsIsLastPage = false
+    private var bookingsIsLoadingMore = false
+
+    fun fetchHotelBookings(
+        hotelId: Long,
+        from: String? = null,
+        to: String? = null,
+        forceRefresh: Boolean = false
+    ) {
+        if (forceRefresh) {
+            bookingsCurrentPage = 0
+            bookingsIsLastPage = false
+            bookingsIsLoadingMore = false
+            _hotelBookingsState.value = UiState.Loading
+        }
+
+        if (bookingsIsLoadingMore || (bookingsIsLastPage && !forceRefresh)) return
+        bookingsIsLoadingMore = true
+        if (bookingsCurrentPage > 0) _isBookingsPaginating.value = true
+
+        viewModelScope.launch {
+            repository.getHotelBookings(hotelId, from, to, bookingsCurrentPage).collect { state ->
+                if (state is UiState.Success) {
+                    val newData = state.data!!
+
+                    // FIXED: Safely handle null page object
+                    bookingsIsLastPage = if (newData.page != null) {
+                        (newData.page.number + 1) >= newData.page.totalPages
+                    } else {
+                        true // If there is no page info, assume no more data
+                    }
+
+                    if (bookingsCurrentPage > 0 && _hotelBookingsState.value is UiState.Success) {
+                        val currentData = (_hotelBookingsState.value as UiState.Success).data!!.content
+                        _hotelBookingsState.value = UiState.Success(
+                            PagedHotelBookings(currentData + newData.content, newData.page)
+                        )
+                    } else {
+                        _hotelBookingsState.value = state
+                    }
+                    bookingsCurrentPage++
+                } else if (state is UiState.Error) {
+                    _hotelBookingsState.value = state
+                }
+
+                if (state !is UiState.Loading) {
+                    bookingsIsLoadingMore = false
+                    _isBookingsPaginating.value = false
+                }
+            }
+        }
+    }
+
 
     init {
         fetchMyHotels(forceRefresh = true)

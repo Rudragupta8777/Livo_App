@@ -19,6 +19,9 @@
         android:theme="@style/Theme.Livo"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".screens.ManagerHotelBookings"
+            android:exported="false" />
+        <activity
             android:name=".screens.UpdateHotel"
             android:exported="false" />
         <activity

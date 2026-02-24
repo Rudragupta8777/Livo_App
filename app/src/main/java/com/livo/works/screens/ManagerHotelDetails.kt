@@ -117,6 +117,13 @@ class ManagerHotelDetails : AppCompatActivity() {
             intent.putExtra("HOTEL_ID", hotelId)
             startActivity(intent)
         }
+
+        // NEW: View Bookings Navigation
+        binding.btnViewBookings.setOnClickListener {
+            val intent = Intent(this, ManagerHotelBookings::class.java)
+            intent.putExtra("HOTEL_ID", hotelId)
+            startActivity(intent)
+        }
     }
 
     private fun showDeleteConfirmationDialog() {
@@ -196,7 +203,6 @@ class ManagerHotelDetails : AppCompatActivity() {
             tvHotelCity.text = hotel.city
             currentHotelName = hotel.name
 
-            // ViewPager Header Images
             if (hotel.photos.isNotEmpty()) {
                 headerImageAdapter.submitList(hotel.photos)
                 tvHeaderImageCount.text = "1/${hotel.photos.size}"
@@ -205,25 +211,27 @@ class ManagerHotelDetails : AppCompatActivity() {
                 cvImageCounter.visibility = View.GONE
             }
 
-            // Status logic
+            // Updated Status logic for the split bottom bar
             if (hotel.active) {
                 tvStatusText.text = "ACTIVE"
                 tvStatusText.setTextColor(Color.parseColor("#1B5E20"))
                 cvStatusBadge.setCardBackgroundColor(Color.parseColor("#E8F5E9"))
+
                 btnActivate.visibility = View.GONE
+                layoutActiveActions.visibility = View.VISIBLE
             } else {
                 tvStatusText.text = "PENDING APPROVAL"
                 tvStatusText.setTextColor(Color.parseColor("#E65100"))
                 cvStatusBadge.setCardBackgroundColor(Color.parseColor("#FFF3E0"))
+
                 btnActivate.visibility = View.VISIBLE
+                layoutActiveActions.visibility = View.GONE
             }
 
-            // Contact Info
             tvAddress.text = hotel.contactInfo.address
             tvPhone.text = hotel.contactInfo.phoneNumber
             tvEmail.text = hotel.contactInfo.email
 
-            // Amenities ChipGroup
             cgAmenities.removeAllViews()
             hotel.amenities.forEach { amenity ->
                 val chip = Chip(this@ManagerHotelDetails).apply {
@@ -238,7 +246,6 @@ class ManagerHotelDetails : AppCompatActivity() {
                 cgAmenities.addView(chip)
             }
 
-            // Setup Map
             setupMapbox(hotel)
         }
     }

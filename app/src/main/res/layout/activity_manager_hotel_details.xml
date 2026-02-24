@@ -339,16 +339,40 @@
                 android:layout_marginEnd="12dp"
                 android:visibility="gone"/>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnEdit"
+            <LinearLayout
+                android:id="@+id/layoutActiveActions"
                 android:layout_width="0dp"
-                android:layout_height="56dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Edit Details"
-                android:textColor="@color/white"
-                android:textStyle="bold"
-                app:backgroundTint="@color/text_primary"
-                app:cornerRadius="16dp"/>
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewBookings"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:text="Bookings"
+                    android:textColor="@color/text_primary"
+                    android:textStyle="bold"
+                    app:strokeColor="@color/text_primary"
+                    app:cornerRadius="16dp"
+                    android:layout_marginEnd="8dp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnEdit"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:layout_weight="1"
+                    android:text="Edit"
+                    android:textColor="@color/white"
+                    android:textStyle="bold"
+                    app:backgroundTint="@color/text_primary"
+                    app:cornerRadius="16dp"
+                    android:layout_marginStart="4dp"/>
+            </LinearLayout>
+
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 

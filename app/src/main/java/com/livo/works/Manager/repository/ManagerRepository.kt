@@ -3,8 +3,10 @@ package com.livo.works.Manager.repository
 import com.livo.works.Api.ManagerApiService
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
 import com.livo.works.Manager.data.ManagerHotelDto
+import com.livo.works.Manager.data.PagedHotelBookings
 import com.livo.works.Manager.data.PagedManagerHotels
 import com.livo.works.util.UiState
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
@@ -112,5 +114,24 @@ class ManagerRepository @Inject constructor(
         } catch (e: Exception) {
             emit(UiState.Error("Network Error"))
         }
+    }
+
+    fun getHotelBookings(
+        hotelId: Long,
+        from: String? = null,
+        to: String? = null,
+        page: Int = 0
+    ): Flow<UiState<PagedHotelBookings>> = flow {
+        emit(UiState.Loading)
+
+        val response = api.getHotelBookings(hotelId, from, to, page)
+        if (response.isSuccessful && response.body() != null) {
+            // FIXED: Extract the actual paginated list from inside the "data" object!
+            emit(UiState.Success(response.body()!!.data))
+        } else {
+            emit(UiState.Error("Failed to fetch bookings: ${response.code()}"))
+        }
+    }.catch { e ->
+        emit(UiState.Error(e.localizedMessage ?: "Network error occurred"))
     }
 }
