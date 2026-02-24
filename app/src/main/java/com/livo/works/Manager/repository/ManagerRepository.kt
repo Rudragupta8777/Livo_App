@@ -1,6 +1,7 @@
 package com.livo.works.Manager.repository
 
 import com.livo.works.Api.ManagerApiService
+import com.livo.works.Manager.data.HotelReportDto
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
 import com.livo.works.Manager.data.ManagerHotelDto
 import com.livo.works.Manager.data.PagedHotelBookings
@@ -130,6 +131,22 @@ class ManagerRepository @Inject constructor(
             emit(UiState.Success(response.body()!!.data))
         } else {
             emit(UiState.Error("Failed to fetch bookings: ${response.code()}"))
+        }
+    }.catch { e ->
+        emit(UiState.Error(e.localizedMessage ?: "Network error occurred"))
+    }
+
+    fun getHotelReport(
+        hotelId: Long,
+        from: String? = null,
+        to: String? = null
+    ): Flow<UiState<HotelReportDto>> = flow {
+        emit(UiState.Loading)
+        val response = api.getHotelReport(hotelId, from, to)
+        if (response.isSuccessful && response.body() != null) {
+            emit(UiState.Success(response.body()!!.data))
+        } else {
+            emit(UiState.Error("Failed to fetch report: ${response.code()}"))
         }
     }.catch { e ->
         emit(UiState.Error(e.localizedMessage ?: "Network error occurred"))

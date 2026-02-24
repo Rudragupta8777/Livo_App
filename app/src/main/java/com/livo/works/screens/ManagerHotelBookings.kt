@@ -16,6 +16,7 @@ import com.livo.works.databinding.ActivityManagerHotelBookingsBinding
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -48,9 +49,37 @@ class ManagerHotelBookings : AppCompatActivity() {
         setupRecyclerView()
         setupListeners()
         observeData()
+        observeReportData()
 
         // Fetch initially
         fetchData(forceRefresh = true)
+    }
+
+    private fun observeReportData() {
+        lifecycleScope.launch {
+            viewModel.hotelReportState.collect { state ->
+                when (state) {
+                    is UiState.Success -> {
+                        val report = state.data!!
+                        binding.cvReportDashboard.visibility = View.VISIBLE
+
+                        // Format Currency for India (₹)
+                        val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
+                        binding.tvTotalRevenue.text = format.format(report.confirmedRevenue)
+
+                        binding.tvConfirmedBookings.text = "${report.confirmedBookings} Bookings"
+                        binding.tvCancelledBookings.text = "${report.cancelledBookings} Bookings"
+                    }
+                    is UiState.Error -> {
+                        binding.cvReportDashboard.visibility = View.GONE
+                    }
+                    is UiState.Loading -> {
+                        // Optional: Show shimmer or leave hidden while loading
+                    }
+                    else -> {}
+                }
+            }
+        }
     }
 
     private fun setupRecyclerView() {
@@ -127,7 +156,13 @@ class ManagerHotelBookings : AppCompatActivity() {
     }
 
     private fun fetchData(forceRefresh: Boolean) {
+        // Fetch Bookings list
         viewModel.fetchHotelBookings(hotelId, fromDateFilter, toDateFilter, forceRefresh)
+
+        // Fetch the Dashboard Report
+        if (forceRefresh) {
+            viewModel.fetchHotelReport(hotelId, fromDateFilter, toDateFilter)
+        }
     }
 
     private fun observeData() {
@@ -148,7 +183,6 @@ class ManagerHotelBookings : AppCompatActivity() {
                             binding.layoutEmptyState.visibility = View.VISIBLE
                             binding.rvBookings.visibility = View.GONE
 
-                            // Adjust empty text based on filter
                             if (fromDateFilter != null) {
                                 binding.tvEmptyStateDesc.text = "No bookings found for the selected date range."
                             } else {

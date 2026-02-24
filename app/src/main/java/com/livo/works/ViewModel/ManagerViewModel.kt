@@ -2,6 +2,7 @@ package com.livo.works.ViewModel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.livo.works.Manager.data.HotelReportDto
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
 import com.livo.works.Manager.data.PagedHotelBookings
 import com.livo.works.Manager.data.PagedManagerHotels
@@ -124,6 +125,18 @@ class ManagerViewModel @Inject constructor(
                     isLoadingMore = false
                     _isPaginating.value = false
                 }
+            }
+        }
+    }
+
+    // --- REPORT STATE ---
+    private val _hotelReportState = MutableStateFlow<UiState<HotelReportDto>>(UiState.Idle)
+    val hotelReportState = _hotelReportState.asStateFlow()
+
+    fun fetchHotelReport(hotelId: Long, from: String? = null, to: String? = null) {
+        viewModelScope.launch {
+            repository.getHotelReport(hotelId, from, to).collect { state ->
+                _hotelReportState.value = state
             }
         }
     }

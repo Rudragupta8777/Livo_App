@@ -4,6 +4,7 @@ import com.livo.works.Auth.data.ApiResponse
 import com.livo.works.Manager.data.BookingsResponseWrapper
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
 import com.livo.works.Manager.data.PagedManagerHotels
+import com.livo.works.Manager.data.ReportResponseWrapper
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -62,4 +63,11 @@ interface ManagerApiService {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 10
     ): Response<BookingsResponseWrapper>
+
+    @GET("admin/hotels/{hotelId}/report")
+    suspend fun getHotelReport(
+        @Path("hotelId") hotelId: Long,
+        @Query("from") from: String? = null,
+        @Query("to") to: String? = null
+    ): Response<ReportResponseWrapper>
 }

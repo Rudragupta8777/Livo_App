@@ -2,6 +2,7 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/screen_background">
@@ -40,7 +41,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Bookings"
+                android:text="Bookings Overview"
                 android:textSize="24sp"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/black"
@@ -50,17 +51,17 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingHorizontal="24dp"
-            android:paddingBottom="12dp">
+            android:paddingHorizontal="20dp"
+            android:paddingBottom="16dp"
+            android:paddingTop="8dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btnDateFilter"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:cardCornerRadius="12dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="@color/lines"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp"
                 app:cardBackgroundColor="@color/white"
                 android:clickable="true"
                 android:focusable="true">
@@ -69,17 +70,17 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:padding="12dp"
+                    android:paddingHorizontal="20dp"
+                    android:paddingVertical="14dp"
                     android:gravity="center_vertical">
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Filter by Date:"
+                        android:text="Filter by Date"
                         android:textSize="14sp"
-                        android:textStyle="bold"
-                        android:textColor="@color/black"/>
+                        android:textColor="@color/on_boarding_description"/>
 
                     <TextView
                         android:id="@+id/tvDateRange"
@@ -91,8 +92,8 @@
                         android:textStyle="bold"/>
 
                     <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
                         android:src="@drawable/ic_calendar"
                         android:layout_marginStart="8dp"
                         app:tint="@color/text_primary"/>
@@ -107,54 +108,191 @@
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <FrameLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvBookings"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:clipToPadding="false"
-                android:paddingBottom="100dp"/>
-
-            <ProgressBar
-                android:id="@+id/paginationProgressBar"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="bottom|center_horizontal"
-                android:layout_marginBottom="24dp"
-                android:visibility="gone" />
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="100dp">
 
             <LinearLayout
-                android:id="@+id/layoutEmptyState"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_gravity="center"
-                android:gravity="center"
-                android:visibility="gone">
+                android:orientation="vertical">
+
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cvReportDashboard"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="20dp"
+                    android:layout_marginBottom="24dp"
+                    app:cardCornerRadius="24dp"
+                    app:cardElevation="2dp"
+                    android:visibility="gone"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/lines"
+                    app:cardBackgroundColor="@color/white">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="24dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Total Revenue Generated"
+                            android:textSize="12sp"
+                            android:textColor="@color/on_boarding_description"
+                            android:textStyle="bold"
+                            android:textAllCaps="true"
+                            android:letterSpacing="0.05"/>
+
+                        <TextView
+                            android:id="@+id/tvTotalRevenue"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            tools:text="₹32,200.00"
+                            android:textSize="32sp"
+                            android:fontFamily="sans-serif-black"
+                            android:textColor="#219B28"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="20dp"/>
+
+                        <com.google.android.material.card.MaterialCardView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="0dp"
+                            app:strokeWidth="1dp"
+                            app:strokeColor="@color/lines"
+                            app:cardBackgroundColor="@color/image_selector">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:paddingVertical="16dp">
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical"
+                                    android:gravity="center">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Confirmed"
+                                        android:textSize="12sp"
+                                        android:textColor="@color/on_boarding_description"/>
+                                    <TextView
+                                        android:id="@+id/tvConfirmedBookings"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        tools:text="12"
+                                        android:layout_marginTop="4dp"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:textColor="@color/black"/>
+                                </LinearLayout>
+
+                                <View
+                                    android:layout_width="1dp"
+                                    android:layout_height="match_parent"
+                                    android:layout_marginVertical="4dp"
+                                    android:background="@color/lines" />
+
+                                <LinearLayout
+                                    android:layout_width="0dp"
+                                    android:layout_height="wrap_content"
+                                    android:layout_weight="1"
+                                    android:orientation="vertical"
+                                    android:gravity="center">
+                                    <TextView
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:text="Cancellations"
+                                        android:textSize="12sp"
+                                        android:textColor="@color/on_boarding_description"/>
+                                    <TextView
+                                        android:id="@+id/tvCancelledBookings"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        tools:text="2"
+                                        android:layout_marginTop="4dp"
+                                        android:textSize="18sp"
+                                        android:textStyle="bold"
+                                        android:textColor="#D32F2F"/>
+                                </LinearLayout>
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="No Bookings Found"
-                    android:textSize="20sp"
+                    android:text="Recent Bookings"
+                    android:textSize="18sp"
                     android:fontFamily="sans-serif-black"
-                    android:textColor="@color/black"/>
+                    android:textColor="@color/black"
+                    android:layout_marginHorizontal="24dp"
+                    android:layout_marginBottom="8dp"/>
 
-                <TextView
-                    android:id="@+id/tvEmptyStateDesc"
-                    android:layout_width="wrap_content"
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvBookings"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="There are no bookings for this property yet."
-                    android:textSize="14sp"
-                    android:textAlignment="center"
-                    android:textColor="@color/on_boarding_description"
-                    android:layout_marginTop="8dp"
-                    android:paddingHorizontal="40dp"/>
+                    android:nestedScrollingEnabled="false" />
+
+                <ProgressBar
+                    android:id="@+id/paginationProgressBar"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginVertical="16dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:id="@+id/layoutEmptyState"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginTop="60dp"
+                    android:visibility="gone">
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:src="@drawable/ic_calendar"
+                        app:tint="#E0E0E0"
+                        android:layout_marginBottom="16dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="No Bookings Found"
+                        android:textSize="20sp"
+                        android:fontFamily="sans-serif-black"
+                        android:textColor="@color/black"/>
+
+                    <TextView
+                        android:id="@+id/tvEmptyStateDesc"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="There are no bookings for this property yet."
+                        android:textSize="14sp"
+                        android:textAlignment="center"
+                        android:textColor="@color/on_boarding_description"
+                        android:layout_marginTop="8dp"
+                        android:paddingHorizontal="40dp"
+                        android:lineSpacingExtra="4dp"/>
+                </LinearLayout>
+
             </LinearLayout>
-        </FrameLayout>
+        </androidx.core.widget.NestedScrollView>
     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
@@ -163,7 +301,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
         android:layout_margin="24dp"
-        android:text="Clear Date Filter"
+        android:text="Clear Filter"
         app:icon="@drawable/ic_delete"
         android:textColor="@color/white"
         app:iconTint="@color/white"
