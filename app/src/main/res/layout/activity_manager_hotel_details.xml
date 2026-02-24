@@ -312,16 +312,18 @@
                 android:layout_height="56dp"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
+                app:strokeWidth="0dp"
                 app:cardBackgroundColor="#FFEBEE"
                 android:clickable="true"
                 android:focusable="true"
                 android:layout_marginEnd="12dp">
-                <TextView
+
+                <ImageView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="🗑️"
-                    android:textSize="20sp"/>
+                    android:tint="#C62828"
+                    android:src="@drawable/ic_delete"/>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton

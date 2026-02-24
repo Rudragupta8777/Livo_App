@@ -11,8 +11,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.livo.works.ViewModel.ManagerViewModel
+import com.livo.works.adapter.ManagerHotelAdapter
 import com.livo.works.databinding.ActivityManagerPropertiesBinding
-import com.livo.works.screens.adapter.ManagerHotelAdapter
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -33,14 +33,10 @@ class ManagerProperties : AppCompatActivity() {
         setupRecyclerView()
         setupListeners()
         observeData()
-
-        // Fetch data initially
-        viewModel.fetchMyHotels(forceRefresh = true)
     }
 
     private fun setupRecyclerView() {
         adapter = ManagerHotelAdapter { hotelId ->
-            // FIXED: Uncommented navigation to details screen!
             val intent = Intent(this, ManagerHotelDetails::class.java)
             intent.putExtra("HOTEL_ID", hotelId)
             startActivity(intent)
@@ -50,10 +46,9 @@ class ManagerProperties : AppCompatActivity() {
         binding.rvHotels.layoutManager = layoutManager
         binding.rvHotels.adapter = adapter
 
-        // Pagination Scroll Listener
         binding.rvHotels.addOnScrollListener(object : RecyclerView.OnScrollListener() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                if (dy > 0) { // Scrolling down
+                if (dy > 0) {
                     val visibleItemCount = layoutManager.childCount
                     val totalItemCount = layoutManager.itemCount
                     val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
@@ -72,7 +67,6 @@ class ManagerProperties : AppCompatActivity() {
         }
 
         binding.fabAddProperty.setOnClickListener {
-            // FIXED: Uncommented the Intent and used the correct CreateHotel class
             val intent = Intent(this, CreateHotel::class.java)
             startActivity(intent)
         }
@@ -92,7 +86,6 @@ class ManagerProperties : AppCompatActivity() {
                         val hotels = state.data?.content ?: emptyList()
                         adapter.submitList(hotels)
 
-                        // Handle Empty State
                         if (hotels.isEmpty()) {
                             binding.layoutEmptyState.visibility = View.VISIBLE
                             binding.rvHotels.visibility = View.GONE
@@ -119,7 +112,6 @@ class ManagerProperties : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Refresh the list when coming back from Create/Edit screens
         viewModel.fetchMyHotels(forceRefresh = true)
     }
 }

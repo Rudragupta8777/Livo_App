@@ -16,12 +16,12 @@ import dagger.hilt.android.AndroidEntryPoint
 class Dashboard : AppCompatActivity() {
 
     private lateinit var binding: ActivityDashboardBinding
-    private val homeFragment = HomeFragment()
-    private val searchFragment = SearchFragment()
-    private val bookingFragment = BookingFragment()
-    private val profileFragment = ProfileFragment()
+    private lateinit var homeFragment: Fragment
+    private lateinit var searchFragment: Fragment
+    private lateinit var bookingFragment: Fragment
+    private lateinit var profileFragment: Fragment
 
-    private var activeFragment: Fragment = homeFragment
+    private lateinit var activeFragment: Fragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,14 +30,35 @@ class Dashboard : AppCompatActivity() {
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Add all fragments initially but hide the ones that aren't Home
         if (savedInstanceState == null) {
+            // First time creation
+            homeFragment = HomeFragment()
+            searchFragment = SearchFragment()
+            bookingFragment = BookingFragment()
+            profileFragment = ProfileFragment()
+
             supportFragmentManager.beginTransaction().apply {
                 add(R.id.fragmentContainer, profileFragment, "4").hide(profileFragment)
                 add(R.id.fragmentContainer, bookingFragment, "3").hide(bookingFragment)
                 add(R.id.fragmentContainer, searchFragment, "2").hide(searchFragment)
                 add(R.id.fragmentContainer, homeFragment, "1")
             }.commit()
+
+            activeFragment = homeFragment
+        } else {
+            homeFragment = supportFragmentManager.findFragmentByTag("1") ?: HomeFragment()
+            searchFragment = supportFragmentManager.findFragmentByTag("2") ?: SearchFragment()
+            bookingFragment = supportFragmentManager.findFragmentByTag("3") ?: BookingFragment()
+            profileFragment = supportFragmentManager.findFragmentByTag("4") ?: ProfileFragment()
+
+            // Restore active fragment based on bottom nav selection
+            activeFragment = when (binding.bottomNav.selectedItemId) {
+                R.id.nav_home -> homeFragment
+                R.id.nav_search -> searchFragment
+                R.id.nav_booking -> bookingFragment
+                R.id.nav_profile -> profileFragment
+                else -> homeFragment
+            }
         }
 
         setupBottomNavListener()
@@ -82,7 +103,6 @@ class Dashboard : AppCompatActivity() {
 
     private fun handleNavigationIntent() {
         val openTab = intent.getStringExtra("OPEN_TAB")
-
         if (openTab == "BOOKINGS") {
             binding.bottomNav.selectedItemId = R.id.nav_booking
         }

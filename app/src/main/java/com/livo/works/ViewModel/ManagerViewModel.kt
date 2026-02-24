@@ -42,6 +42,8 @@ class ManagerViewModel @Inject constructor(
             currentPage = 0
             isLastPage = false
             isLoadingMore = false
+
+            _hotelsListState.value = UiState.Loading
         }
 
         if (isLoadingMore || (isLastPage && !forceRefresh)) return
@@ -79,6 +81,22 @@ class ManagerViewModel @Inject constructor(
                     fetchMyHotels(true)
                 } else if (state is UiState.Error) _actionState.value = state
                 else if (state is UiState.Loading) _actionState.value = UiState.Loading
+            }
+        }
+    }
+
+    fun updateHotel(id: Long, hotel: ManagerHotelDetailsDto) {
+        viewModelScope.launch {
+            repository.updateHotel(id, hotel).collect { state ->
+                if (state is UiState.Success) {
+                    _actionState.value = UiState.Success(Unit)
+                    // Refresh the list so the updated data shows up
+                    fetchMyHotels(true)
+                } else if (state is UiState.Error) {
+                    _actionState.value = state
+                } else if (state is UiState.Loading) {
+                    _actionState.value = UiState.Loading
+                }
             }
         }
     }

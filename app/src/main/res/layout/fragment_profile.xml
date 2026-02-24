@@ -286,7 +286,7 @@
                 android:layout_height="64dp"
                 android:layout_marginHorizontal="20dp"
                 android:layout_marginBottom="40dp"
-                android:text="Log Out"
+                android:text="LOGOUT"
                 android:textColor="#C62828"
                 android:textStyle="bold"
                 android:textSize="18sp"

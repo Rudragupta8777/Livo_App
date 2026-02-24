@@ -16,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingTop="30dp"
+            android:paddingTop="40dp"
             android:paddingBottom="8dp"
             android:paddingHorizontal="24dp">
 
@@ -28,14 +28,6 @@
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/black"
                 android:letterSpacing="-0.02"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Manage your hotel listings"
-                android:textSize="14sp"
-                android:textColor="@color/on_boarding_description"
-                android:layout_marginTop="4dp"/>
         </LinearLayout>
     </com.google.android.material.appbar.AppBarLayout>
 
@@ -43,6 +35,7 @@
         android:id="@+id/swipeRefreshLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <FrameLayout

@@ -1,6 +1,5 @@
 package com.livo.works.screens
 
-import android.app.AlertDialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -114,20 +113,37 @@ class ManagerHotelDetails : AppCompatActivity() {
         }
 
         binding.btnEdit.setOnClickListener {
-            Toast.makeText(this, "Edit Hotel screen coming soon!", Toast.LENGTH_SHORT).show()
+            val intent = Intent(this, UpdateHotel::class.java)
+            intent.putExtra("HOTEL_ID", hotelId)
+            startActivity(intent)
         }
     }
 
     private fun showDeleteConfirmationDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Delete Property")
-            .setMessage("Are you sure you want to delete this property? This action cannot be undone.")
-            .setPositiveButton("Delete") { _, _ ->
-                binding.textViewFindingHotels.text = "Deleting Property..."
-                viewModel.deleteHotel(hotelId)
-            }
-            .setNegativeButton("Cancel", null)
-            .show()
+        val dialog = android.app.Dialog(this)
+        dialog.setContentView(R.layout.dialog_delete_confirmation)
+
+        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+        dialog.window?.setLayout(
+            android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+            android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+
+        // Find buttons inside the custom layout
+        val btnCancel = dialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
+        val btnConfirm = dialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnConfirmDelete)
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss()
+        }
+
+        btnConfirm.setOnClickListener {
+            dialog.dismiss()
+            binding.textViewFindingHotels.text = "Deleting Property..."
+            viewModel.deleteHotel(hotelId)
+        }
+
+        dialog.show()
     }
 
     private fun observeData() {

@@ -2,7 +2,6 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/screen_background">
@@ -40,7 +39,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="List Property"
+                android:text="Update Property"
                 android:textSize="24sp"
                 android:fontFamily="sans-serif-black"
                 android:textColor="@color/black"
@@ -92,7 +91,6 @@
                             android:textStyle="bold"
                             android:textSize="16sp"
                             android:textColor="@color/black"/>
-
                     </LinearLayout>
 
                     <HorizontalScrollView
@@ -350,7 +348,7 @@
                             style="@style/Widget.Material3.Button.OutlinedButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Open Map"
+                            android:text="Change Map Location"
                             android:textColor="@color/text_primary"
                             app:strokeColor="@color/text_primary"/>
                     </LinearLayout>
@@ -405,7 +403,7 @@
                 android:id="@+id/btnSubmit"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
-                android:text="Submit Property"
+                android:text="Save Changes"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 android:textSize="18sp"
@@ -550,7 +548,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Uploading &amp; Creating..."
+            android:text="Updating Property..."
             android:textColor="@color/text_primary"
             android:textSize="14sp"
             android:textStyle="bold"

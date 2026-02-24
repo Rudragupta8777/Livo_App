@@ -24,7 +24,7 @@ import com.livo.works.Manager.data.ManagerContactInfo
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
 import com.livo.works.R
 import com.livo.works.ViewModel.ManagerViewModel
-import com.livo.works.databinding.ActivityCreateHotelBinding
+import com.livo.works.databinding.ActivityUpdateHotelBinding
 import com.livo.works.util.CloudinaryHelper
 import com.livo.works.util.UiState
 import com.mapbox.geojson.Point
@@ -34,44 +34,49 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CreateHotel : AppCompatActivity() {
+class UpdateHotel : AppCompatActivity() {
 
-    private lateinit var binding: ActivityCreateHotelBinding
+    private lateinit var binding: ActivityUpdateHotelBinding
     private val viewModel: ManagerViewModel by viewModels()
 
-    private val selectedImageUris = mutableListOf<Uri>()
-    private var dotAnimators = mutableListOf<android.animation.ObjectAnimator>()
+    private var hotelId: Long = -1L
 
-    // Hidden Coordinates
+    private var existingImageUrls = mutableListOf<String>()
+    private val newImageUris = mutableListOf<Uri>()
+
     private var selectedLat: Double = 0.0
     private var selectedLng: Double = 0.0
 
-    // Photo Picker
+    private var dotAnimators = mutableListOf<android.animation.ObjectAnimator>()
+
     private val pickMultipleMedia = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) { uris ->
         if (uris.isNotEmpty()) {
-            selectedImageUris.addAll(uris)
+            newImageUris.addAll(uris)
             updatePhotoUI()
         }
     }
 
-    // Location Permission Request
     private val locationPermissionRequest = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted ->
-        if (isGranted) {
-            openFullScreenMap()
-        } else {
-            Toast.makeText(this, "Location permission is needed to map the property.", Toast.LENGTH_SHORT).show()
-        }
+        if (isGranted) openFullScreenMap()
+        else Toast.makeText(this, "Location permission is needed to map the property.", Toast.LENGTH_SHORT).show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityCreateHotelBinding.inflate(layoutInflater)
+        binding = ActivityUpdateHotelBinding.inflate(layoutInflater)
         setContentView(binding.root)
         enableEdgeToEdge()
 
-        // Implement AndroidX OnBackPressedDispatcher to handle the map overlay
+        hotelId = intent.getLongExtra("HOTEL_ID", -1L)
+        if (hotelId == -1L) {
+            Toast.makeText(this, "Invalid Hotel ID", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
+
+        // Back Navigation Handling
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 if (binding.fullScreenMapOverlay.visibility == View.VISIBLE) {
@@ -86,6 +91,8 @@ class CreateHotel : AppCompatActivity() {
 
         setupListeners()
         observeData()
+
+        viewModel.fetchHotelDetails(hotelId)
     }
 
     private fun setupListeners() {
@@ -93,12 +100,11 @@ class CreateHotel : AppCompatActivity() {
             onBackPressedDispatcher.onBackPressed()
         }
 
-        // --- PHOTOS LOGIC ---
         binding.btnAddPhotos.setOnClickListener {
             pickMultipleMedia.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
         }
 
-        // --- FULL SCREEN MAP LOGIC ---
+        // --- MAP LOGIC ---
         binding.btnSelectLocation.setOnClickListener {
             checkLocationPermissionAndStart()
         }
@@ -107,18 +113,15 @@ class CreateHotel : AppCompatActivity() {
             checkLocationPermissionAndStart()
         }
 
-        // Close map without saving
         binding.btnCloseMap.setOnClickListener {
             binding.fullScreenMapOverlay.visibility = View.GONE
         }
 
-        // Confirm pin from full screen map
         binding.btnConfirmFullMap.setOnClickListener {
             val centerPoint = binding.fullMapView.getMapboxMap().cameraState.center
             selectedLat = centerPoint.latitude()
             selectedLng = centerPoint.longitude()
 
-            // Hide full screen map, show success inline
             binding.fullScreenMapOverlay.visibility = View.GONE
             binding.layoutLocationSetup.visibility = View.GONE
             binding.layoutLocationSuccess.visibility = View.VISIBLE
@@ -128,6 +131,70 @@ class CreateHotel : AppCompatActivity() {
         binding.btnSubmit.setOnClickListener {
             validateAndSubmit()
         }
+    }
+
+    private fun observeData() {
+        lifecycleScope.launch {
+            viewModel.hotelDetailsState.collect { state ->
+                when (state) {
+                    is UiState.Loading -> showLoading(true)
+                    is UiState.Success -> {
+                        showLoading(false)
+                        state.data?.let { populateFields(it) }
+                    }
+                    is UiState.Error -> {
+                        showLoading(false)
+                        Toast.makeText(this@UpdateHotel, state.message, Toast.LENGTH_SHORT).show()
+                    }
+                    else -> {}
+                }
+            }
+        }
+
+        lifecycleScope.launch {
+            viewModel.actionState.collect { state ->
+                when (state) {
+                    is UiState.Loading -> showLoading(true)
+                    is UiState.Success -> {
+                        showLoading(false)
+                        Toast.makeText(this@UpdateHotel, "Property Updated Successfully!", Toast.LENGTH_LONG).show()
+                        viewModel.resetActionState()
+                        finish()
+                    }
+                    is UiState.Error -> {
+                        showLoading(false)
+                        Toast.makeText(this@UpdateHotel, state.message, Toast.LENGTH_SHORT).show()
+                        viewModel.resetActionState()
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
+
+    private fun populateFields(hotel: ManagerHotelDetailsDto) {
+        binding.etName.setText(hotel.name)
+        binding.etCity.setText(hotel.city)
+        binding.etAddress.setText(hotel.contactInfo.address)
+        binding.etPhone.setText(hotel.contactInfo.phoneNumber)
+        binding.etEmail.setText(hotel.contactInfo.email)
+        binding.etAmenities.setText(hotel.amenities.joinToString(", "))
+
+        try {
+            val locParts = hotel.contactInfo.location.split(",")
+            if (locParts.size == 2) {
+                selectedLat = locParts[0].trim().toDouble()
+                selectedLng = locParts[1].trim().toDouble()
+                binding.layoutLocationSetup.visibility = View.GONE
+                binding.layoutLocationSuccess.visibility = View.VISIBLE
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        existingImageUrls.clear()
+        existingImageUrls.addAll(hotel.photos)
+        updatePhotoUI()
     }
 
     private fun checkLocationPermissionAndStart() {
@@ -140,107 +207,111 @@ class CreateHotel : AppCompatActivity() {
 
     @SuppressLint("MissingPermission")
     private fun openFullScreenMap() {
-        // Show Full Screen Overlay
         binding.fullScreenMapOverlay.visibility = View.VISIBLE
 
         val mapboxMap = binding.fullMapView.getMapboxMap()
         mapboxMap.loadStyleUri(Style.MAPBOX_STREETS)
 
-        // Center on User Location
-        val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
-        fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
-            if (location != null) {
-                val userPoint = Point.fromLngLat(location.longitude, location.latitude)
-                mapboxMap.setCamera(
-                    CameraOptions.Builder()
-                        .center(userPoint)
-                        .zoom(15.0)
-                        .build()
-                )
-            } else {
-                // Fallback (Center of India)
-                val fallbackPoint = Point.fromLngLat(78.9629, 20.5937)
-                mapboxMap.setCamera(CameraOptions.Builder().center(fallbackPoint).zoom(5.0).build())
+        // If we already have a location from the hotel data, center the map there!
+        if (selectedLat != 0.0 && selectedLng != 0.0) {
+            val point = Point.fromLngLat(selectedLng, selectedLat)
+            mapboxMap.setCamera(CameraOptions.Builder().center(point).zoom(15.0).build())
+        } else {
+            // Otherwise get user's current location
+            val fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+            fusedLocationClient.lastLocation.addOnSuccessListener { location: Location? ->
+                if (location != null) {
+                    val userPoint = Point.fromLngLat(location.longitude, location.latitude)
+                    mapboxMap.setCamera(CameraOptions.Builder().center(userPoint).zoom(15.0).build())
+                }
             }
         }
     }
 
     private fun updatePhotoUI() {
         val childCount = binding.layoutPhotoContainer.childCount
-        // Keep index 0 (the Add button), remove the rest
         if (childCount > 1) {
             binding.layoutPhotoContainer.removeViews(1, childCount - 1)
         }
 
         val dpToPx = resources.displayMetrics.density
 
-        // Create a copy of the list so we don't hit ConcurrentModification exceptions
-        selectedImageUris.toList().forEach { uri ->
+        // Render Existing Cloudinary URLs
+        existingImageUrls.toList().forEach { url ->
+            addDeletableThumbnail(url, dpToPx, isExisting = true)
+        }
 
-            // Outer FrameLayout to hold both the Image and the Delete Icon overlay
-            val frameLayout = android.widget.FrameLayout(this).apply {
-                layoutParams = android.widget.LinearLayout.LayoutParams(
-                    resources.getDimensionPixelSize(R.dimen.photo_size),
-                    resources.getDimensionPixelSize(R.dimen.photo_size)
-                ).apply { marginEnd = 24 }
+        // Render New Local URIs
+        newImageUris.toList().forEach { uri ->
+            addDeletableThumbnail(uri, dpToPx, isExisting = false)
+        }
+    }
+
+    private fun addDeletableThumbnail(imageSource: Any, dpToPx: Float, isExisting: Boolean) {
+        val frameLayout = android.widget.FrameLayout(this).apply {
+            layoutParams = android.widget.LinearLayout.LayoutParams(
+                resources.getDimensionPixelSize(R.dimen.photo_size),
+                resources.getDimensionPixelSize(R.dimen.photo_size)
+            ).apply { marginEnd = 24 }
+        }
+
+        val imageCard = MaterialCardView(this).apply {
+            layoutParams = android.widget.FrameLayout.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            radius = 40f
+            strokeWidth = 0
+        }
+
+        val imageView = ImageView(this).apply {
+            layoutParams = android.view.ViewGroup.LayoutParams(
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
+                android.view.ViewGroup.LayoutParams.MATCH_PARENT
+            )
+            scaleType = ImageView.ScaleType.CENTER_CROP
+        }
+
+        Glide.with(this).load(imageSource).into(imageView)
+        imageCard.addView(imageView)
+        frameLayout.addView(imageCard)
+
+        // Delete Button Overlay
+        val deleteButtonCard = MaterialCardView(this).apply {
+            val cardSize = (24 * dpToPx).toInt()
+            layoutParams = android.widget.FrameLayout.LayoutParams(cardSize, cardSize).apply {
+                gravity = android.view.Gravity.TOP or android.view.Gravity.END
+                topMargin = (6 * dpToPx).toInt()
+                marginEnd = (6 * dpToPx).toInt()
             }
+            radius = (12 * dpToPx)
+            setCardBackgroundColor(android.graphics.Color.parseColor("#80000000"))
+            strokeWidth = 0
+            cardElevation = 0f
 
-            // The main Image Card
-            val imageCard = MaterialCardView(this).apply {
+            val deleteIcon = ImageView(context).apply {
                 layoutParams = android.widget.FrameLayout.LayoutParams(
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT,
                     android.view.ViewGroup.LayoutParams.MATCH_PARENT
                 )
-                radius = 40f
-                strokeWidth = 0
+                setPadding((6 * dpToPx).toInt(), (6 * dpToPx).toInt(), (6 * dpToPx).toInt(), (6 * dpToPx).toInt())
+                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
+                imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
             }
+            addView(deleteIcon)
 
-            val imageView = ImageView(this).apply {
-                layoutParams = android.view.ViewGroup.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                scaleType = ImageView.ScaleType.CENTER_CROP
+            setOnClickListener {
+                if (isExisting) {
+                    existingImageUrls.remove(imageSource as String)
+                } else {
+                    newImageUris.remove(imageSource as Uri)
+                }
+                updatePhotoUI()
             }
-
-            Glide.with(this).load(uri).into(imageView)
-            imageCard.addView(imageView)
-            frameLayout.addView(imageCard)
-
-            // The small circular Delete Button layered on top
-            val deleteButtonCard = MaterialCardView(this).apply {
-                val cardSize = (24 * dpToPx).toInt()
-                layoutParams = android.widget.FrameLayout.LayoutParams(cardSize, cardSize).apply {
-                    gravity = android.view.Gravity.TOP or android.view.Gravity.END
-                    topMargin = (6 * dpToPx).toInt()
-                    marginEnd = (6 * dpToPx).toInt()
-                }
-                radius = (12 * dpToPx)
-                setCardBackgroundColor(android.graphics.Color.parseColor("#80000000")) // Semi-transparent black
-                strokeWidth = 0
-                cardElevation = 0f
-
-                val deleteIcon = ImageView(context).apply {
-                    layoutParams = android.widget.FrameLayout.LayoutParams(
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                        android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    setPadding((6 * dpToPx).toInt(), (6 * dpToPx).toInt(), (6 * dpToPx).toInt(), (6 * dpToPx).toInt())
-                    // Using standard Android system drawable for the "X" close mark
-                    setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                    imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
-                }
-                addView(deleteIcon)
-
-                setOnClickListener {
-                    selectedImageUris.remove(uri)
-                    updatePhotoUI()
-                }
-            }
-
-            frameLayout.addView(deleteButtonCard)
-            binding.layoutPhotoContainer.addView(frameLayout)
         }
+
+        frameLayout.addView(deleteButtonCard)
+        binding.layoutPhotoContainer.addView(frameLayout)
     }
 
     private fun validateAndSubmit() {
@@ -264,25 +335,27 @@ class CreateHotel : AppCompatActivity() {
         }
 
         if (selectedLat == 0.0 && selectedLng == 0.0) {
-            Toast.makeText(this, "Please select a map location.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Please set the map location.", Toast.LENGTH_SHORT).show()
             return
         }
 
-        if (selectedImageUris.isEmpty()) {
+        if (existingImageUrls.isEmpty() && newImageUris.isEmpty()) {
             Toast.makeText(this, "Please upload at least one photo", Toast.LENGTH_SHORT).show()
             return
         }
 
         lifecycleScope.launch {
             showLoading(true)
-            val uploadedUrls = mutableListOf<String>()
 
-            for (uri in selectedImageUris) {
-                val url = CloudinaryHelper.uploadImage(this@CreateHotel, uri)
+            val finalPhotoUrls = mutableListOf<String>()
+            finalPhotoUrls.addAll(existingImageUrls)
+
+            for (uri in newImageUris) {
+                val url = CloudinaryHelper.uploadImage(this@UpdateHotel, uri)
                 if (url != null) {
-                    uploadedUrls.add(url)
+                    finalPhotoUrls.add(url)
                 } else {
-                    Toast.makeText(this@CreateHotel, "Failed to upload an image", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this@UpdateHotel, "Failed to upload an image", Toast.LENGTH_SHORT).show()
                     showLoading(false)
                     return@launch
                 }
@@ -291,42 +364,22 @@ class CreateHotel : AppCompatActivity() {
             val amenitiesList = amenitiesStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
             val formattedLocation = "$selectedLat,$selectedLng"
 
-            val newHotel = ManagerHotelDetailsDto(
+            val updatedHotel = ManagerHotelDetailsDto(
+                id = hotelId,
                 name = name,
                 city = city,
-                photos = uploadedUrls,
+                photos = finalPhotoUrls,
                 amenities = amenitiesList,
                 contactInfo = ManagerContactInfo(
                     address = address,
                     phoneNumber = phone,
                     email = email,
                     location = formattedLocation
-                )
+                ),
+                active = true
             )
 
-            viewModel.createHotel(newHotel)
-        }
-    }
-
-    private fun observeData() {
-        lifecycleScope.launch {
-            viewModel.actionState.collect { state ->
-                when (state) {
-                    is UiState.Loading -> showLoading(true)
-                    is UiState.Success -> {
-                        showLoading(false)
-                        Toast.makeText(this@CreateHotel, "Hotel Listed Successfully!", Toast.LENGTH_LONG).show()
-                        viewModel.resetActionState()
-                        finish()
-                    }
-                    is UiState.Error -> {
-                        showLoading(false)
-                        Toast.makeText(this@CreateHotel, state.message, Toast.LENGTH_SHORT).show()
-                        viewModel.resetActionState()
-                    }
-                    else -> {}
-                }
-            }
+            viewModel.updateHotel(hotelId, updatedHotel)
         }
     }
 

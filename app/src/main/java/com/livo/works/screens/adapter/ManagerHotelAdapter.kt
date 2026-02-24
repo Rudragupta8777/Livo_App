@@ -1,14 +1,18 @@
-package com.livo.works.screens.adapter
+package com.livo.works.adapter
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
 import android.graphics.Color
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import androidx.viewpager2.widget.ViewPager2
 import com.livo.works.Manager.data.ManagerHotelDto
 import com.livo.works.databinding.ItemManagerHotelBinding
+import com.livo.works.screens.adapter.HotelAdapter
 
 class ManagerHotelAdapter(
     private val onHotelClick: (Long) -> Unit
@@ -25,39 +29,88 @@ class ManagerHotelAdapter(
         holder.bind(getItem(position))
     }
 
+    override fun onViewRecycled(holder: HotelViewHolder) {
+        super.onViewRecycled(holder)
+        holder.stopBlinking()
+    }
+
     inner class HotelViewHolder(private val binding: ItemManagerHotelBinding) :
         RecyclerView.ViewHolder(binding.root) {
+
+        private val imageAdapter = HotelAdapter.HotelImageAdapter {
+            val position = adapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                onHotelClick(getItem(position).id)
+            }
+        }
+
+        private var dotAnimator: ObjectAnimator? = null
+
+        init {
+            binding.vpHotelImages.adapter = imageAdapter
+
+            binding.vpHotelImages.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+                override fun onPageSelected(position: Int) {
+                    val total = imageAdapter.itemCount
+                    if (total > 0) {
+                        binding.tvImageCount.text = "${position + 1}/$total"
+                    }
+                }
+            })
+
+            binding.root.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    onHotelClick(getItem(position).id)
+                }
+            }
+        }
 
         fun bind(hotel: ManagerHotelDto) {
             binding.apply {
                 tvHotelName.text = hotel.name
-                tvHotelCity.text = hotel.city
+                tvCity.text = hotel.city
 
-                // Load first photo if available
                 if (!hotel.photos.isNullOrEmpty()) {
-                    Glide.with(itemView.context)
-                        .load(hotel.photos[0])
-                        .centerCrop()
-                        .into(ivHotelThumbnail)
+                    imageAdapter.submitList(hotel.photos)
+                    tvImageCount.text = "1/${hotel.photos.size}"
+                    tvImageCount.visibility = View.VISIBLE
                 } else {
-                    ivHotelThumbnail.setImageDrawable(null) // Or set a placeholder
+                    imageAdapter.submitList(emptyList())
+                    tvImageCount.visibility = View.GONE
                 }
 
-                // Status Badge Logic
+                stopBlinking()
+
                 if (hotel.active) {
                     tvStatusText.text = "ACTIVE"
                     tvStatusText.setTextColor(Color.parseColor("#1B5E20")) // Dark Green
                     cvStatusBadge.setCardBackgroundColor(Color.parseColor("#E8F5E9")) // Light Green
+                    indicatorDot.setCardBackgroundColor(Color.parseColor("#4CAF50"))
+
+                    startBlinking()
                 } else {
-                    tvStatusText.text = "PENDING APPROVAL"
+                    tvStatusText.text = "INACTIVE"
                     tvStatusText.setTextColor(Color.parseColor("#E65100")) // Dark Orange
                     cvStatusBadge.setCardBackgroundColor(Color.parseColor("#FFF3E0")) // Light Orange
-                }
-
-                root.setOnClickListener {
-                    onHotelClick(hotel.id)
+                    indicatorDot.setCardBackgroundColor(Color.parseColor("#FF9800"))
                 }
             }
+        }
+
+        private fun startBlinking() {
+            dotAnimator = ObjectAnimator.ofFloat(binding.indicatorDot, View.ALPHA, 1f, 0.2f).apply {
+                duration = 800
+                repeatMode = ValueAnimator.REVERSE
+                repeatCount = ValueAnimator.INFINITE
+                start()
+            }
+        }
+
+        fun stopBlinking() {
+            dotAnimator?.cancel()
+            dotAnimator = null
+            binding.indicatorDot.alpha = 1f // Ensure it's fully visible when static
         }
     }
 
