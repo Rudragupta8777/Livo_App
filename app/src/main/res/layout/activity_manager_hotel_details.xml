@@ -106,7 +106,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scrollbars="none"
-            android:paddingBottom="100dp"
+            android:paddingBottom="140dp"
             android:clipToPadding="false">
 
             <LinearLayout
@@ -299,12 +299,10 @@
         app:strokeWidth="0dp"
         app:cardBackgroundColor="@color/white">
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="20dp"
-            android:gravity="center_vertical">
+            android:padding="20dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/btnDelete"
@@ -316,11 +314,12 @@
                 app:cardBackgroundColor="#FFEBEE"
                 android:clickable="true"
                 android:focusable="true"
-                android:layout_marginEnd="12dp">
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
                     android:layout_gravity="center"
                     android:tint="#C62828"
                     android:src="@drawable/ic_delete"/>
@@ -330,50 +329,77 @@
                 android:id="@+id/btnActivate"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
-                android:layout_weight="1"
-                android:text="Activate"
+                android:text="Activate Property"
                 android:textColor="@color/white"
                 android:textStyle="bold"
                 app:backgroundTint="#2E7D32"
                 app:cornerRadius="16dp"
-                android:layout_marginEnd="12dp"
-                android:visibility="gone"/>
+                android:layout_marginStart="12dp"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toEndOf="@id/btnDelete"
+                app:layout_constraintEnd_toEndOf="parent" />
 
-            <LinearLayout
+            <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/layoutActiveActions"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="horizontal"
-                android:visibility="visible">
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnViewRooms"
+                    android:layout_width="0dp"
+                    android:layout_height="56dp"
+                    android:text="Rooms"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/black"
+                    app:cornerRadius="16dp"
+                    android:layout_marginEnd="6dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toStartOf="@id/btnViewBookings"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnViewBookings"
-                    style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
-                    android:layout_weight="1"
                     android:text="Bookings"
-                    android:textColor="@color/text_primary"
+                    android:backgroundTint="@color/white"
+                    android:textColor="@color/black"
                     android:textStyle="bold"
-                    app:strokeColor="@color/text_primary"
+                    app:strokeWidth="1dp"
+                    app:strokeColor="@color/black"
                     app:cornerRadius="16dp"
-                    android:layout_marginEnd="8dp"/>
+                    android:layout_marginStart="6dp"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/btnViewRooms"
+                    app:layout_constraintEnd_toEndOf="parent"/>
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnEdit"
                     android:layout_width="0dp"
                     android:layout_height="56dp"
-                    android:layout_weight="1"
-                    android:text="Edit"
+                    android:text="Edit Details"
                     android:textColor="@color/white"
                     android:textStyle="bold"
                     app:backgroundTint="@color/text_primary"
                     app:cornerRadius="16dp"
-                    android:layout_marginStart="4dp"/>
-            </LinearLayout>
+                    android:layout_marginTop="12dp"
+                    android:layout_marginStart="68dp"
+                    app:layout_constraintTop_toBottomOf="@id/btnViewRooms"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
     </com.google.android.material.card.MaterialCardView>
 
     <androidx.constraintlayout.widget.ConstraintLayout

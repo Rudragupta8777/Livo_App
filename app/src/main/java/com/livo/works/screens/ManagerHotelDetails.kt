@@ -41,7 +41,6 @@ class ManagerHotelDetails : AppCompatActivity() {
     private lateinit var binding: ActivityManagerHotelDetailsBinding
     private val viewModel: ManagerViewModel by viewModels()
 
-    // ViewPager Adapter from your existing HotelAdapter
     private val headerImageAdapter = HotelAdapter.HotelImageAdapter { }
 
     private var hotelId: Long = -1L
@@ -49,7 +48,6 @@ class ManagerHotelDetails : AppCompatActivity() {
     private var currentLng: Double = 0.0
     private var currentHotelName: String = ""
 
-    // For the loading animation
     private var dotAnimators = mutableListOf<android.animation.ObjectAnimator>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,13 +68,11 @@ class ManagerHotelDetails : AppCompatActivity() {
         setupListeners()
         observeData()
 
-        // Fetch Data
         viewModel.fetchHotelDetails(hotelId)
     }
 
     private fun setupHeaderViewPager() {
         binding.vpHeaderImages.adapter = headerImageAdapter
-
         binding.vpHeaderImages.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 val total = headerImageAdapter.itemCount
@@ -90,7 +86,6 @@ class ManagerHotelDetails : AppCompatActivity() {
     private fun setupListeners() {
         binding.btnBack.setOnClickListener { finish() }
 
-        // Map Click Listener
         binding.mapClickOverlay.setOnClickListener {
             if (currentLat != 0.0 && currentLng != 0.0) {
                 val intent = Intent(this, FullMap::class.java).apply {
@@ -102,7 +97,6 @@ class ManagerHotelDetails : AppCompatActivity() {
             }
         }
 
-        // Manager Action Listeners
         binding.btnDelete.setOnClickListener {
             showDeleteConfirmationDialog()
         }
@@ -118,9 +112,15 @@ class ManagerHotelDetails : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // NEW: View Bookings Navigation
         binding.btnViewBookings.setOnClickListener {
             val intent = Intent(this, ManagerHotelBookings::class.java)
+            intent.putExtra("HOTEL_ID", hotelId)
+            startActivity(intent)
+        }
+
+        // NEW: View Rooms Navigation
+        binding.btnViewRooms.setOnClickListener {
+            val intent = Intent(this, ManagerHotelRooms::class.java)
             intent.putExtra("HOTEL_ID", hotelId)
             startActivity(intent)
         }
@@ -136,14 +136,10 @@ class ManagerHotelDetails : AppCompatActivity() {
             android.view.ViewGroup.LayoutParams.WRAP_CONTENT
         )
 
-        // Find buttons inside the custom layout
         val btnCancel = dialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
         val btnConfirm = dialog.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnConfirmDelete)
 
-        btnCancel.setOnClickListener {
-            dialog.dismiss()
-        }
-
+        btnCancel.setOnClickListener { dialog.dismiss() }
         btnConfirm.setOnClickListener {
             dialog.dismiss()
             binding.textViewFindingHotels.text = "Deleting Property..."
@@ -154,7 +150,6 @@ class ManagerHotelDetails : AppCompatActivity() {
     }
 
     private fun observeData() {
-        // Observe Hotel Details
         lifecycleScope.launch {
             viewModel.hotelDetailsState.collect { state ->
                 when (state) {
@@ -175,7 +170,6 @@ class ManagerHotelDetails : AppCompatActivity() {
             }
         }
 
-        // Observe Action Responses (Activate / Delete)
         lifecycleScope.launch {
             viewModel.actionState.collect { state ->
                 when (state) {
@@ -184,7 +178,7 @@ class ManagerHotelDetails : AppCompatActivity() {
                         showLoading(false)
                         Toast.makeText(this@ManagerHotelDetails, "Action completed successfully!", Toast.LENGTH_SHORT).show()
                         viewModel.resetActionState()
-                        finish() // Go back to the list
+                        finish()
                     }
                     is UiState.Error -> {
                         showLoading(false)
@@ -211,7 +205,6 @@ class ManagerHotelDetails : AppCompatActivity() {
                 cvImageCounter.visibility = View.GONE
             }
 
-            // Updated Status logic for the split bottom bar
             if (hotel.active) {
                 tvStatusText.text = "ACTIVE"
                 tvStatusText.setTextColor(Color.parseColor("#1B5E20"))
@@ -268,12 +261,7 @@ class ManagerHotelDetails : AppCompatActivity() {
                 }
 
                 mapboxMap.loadStyleUri(styleUri) {
-                    mapboxMap.setCamera(
-                        CameraOptions.Builder()
-                            .center(point)
-                            .zoom(14.5)
-                            .build()
-                    )
+                    mapboxMap.setCamera(CameraOptions.Builder().center(point).zoom(14.5).build())
                     addAnnotationToMap(point)
 
                     binding.mapView.gestures.scrollEnabled = false
@@ -306,11 +294,7 @@ class ManagerHotelDetails : AppCompatActivity() {
 
         if (drawable is BitmapDrawable) return drawable.bitmap
 
-        val bitmap = Bitmap.createBitmap(
-            drawable.intrinsicWidth,
-            drawable.intrinsicHeight,
-            Bitmap.Config.ARGB_8888
-        )
+        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
         drawable.setBounds(0, 0, canvas.width, canvas.height)
         drawable.draw(canvas)
@@ -323,11 +307,7 @@ class ManagerHotelDetails : AppCompatActivity() {
         binding.btnDelete.isEnabled = !isLoading
         binding.btnEdit.isEnabled = !isLoading
 
-        if (isLoading) {
-            startDotAnimation()
-        } else {
-            stopDotAnimation()
-        }
+        if (isLoading) startDotAnimation() else stopDotAnimation()
     }
 
     private fun startDotAnimation() {
@@ -344,7 +324,6 @@ class ManagerHotelDetails : AppCompatActivity() {
             animator.repeatCount = android.animation.ObjectAnimator.INFINITE
             animator.interpolator = android.view.animation.AccelerateDecelerateInterpolator()
             animator.startDelay = (index * 150).toLong()
-
             animator.start()
             dotAnimators.add(animator)
         }

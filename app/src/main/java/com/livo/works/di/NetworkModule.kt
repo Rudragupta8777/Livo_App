@@ -5,6 +5,7 @@ import com.livo.works.Api.BookingApiService
 import com.livo.works.Api.ManagerApiService
 import com.livo.works.Api.PaymentApiService
 import com.livo.works.Api.RoleApiService
+import com.livo.works.Api.RoomApiService
 import com.livo.works.Api.SearchApiService
 import com.livo.works.BuildConfig
 import com.livo.works.Search.repository.SearchRepository
@@ -115,6 +116,12 @@ object NetworkModule {
     @Singleton
     fun provideManagerApiService(@Named("ApiRetrofit") retrofit: Retrofit): ManagerApiService {
         return retrofit.create(ManagerApiService::class.java)
+    }
+
+    @Provides
+    @Singleton
+    fun provideRoomApiService(@Named("ApiRetrofit") retrofit: Retrofit): RoomApiService {
+        return retrofit.create(RoomApiService::class.java)
     }
 
     @Provides

@@ -19,6 +19,15 @@
         android:theme="@style/Theme.Livo"
         android:usesCleartextTraffic="true">
         <activity
+            android:name=".screens.ManagerRoomDetails"
+            android:exported="false" />
+        <activity
+            android:name=".screens.ManagerCreateRoom"
+            android:exported="false" />
+        <activity
+            android:name=".screens.ManagerHotelRooms"
+            android:exported="false" />
+        <activity
             android:name=".screens.ManagerHotelBookings"
             android:exported="false" />
         <activity
