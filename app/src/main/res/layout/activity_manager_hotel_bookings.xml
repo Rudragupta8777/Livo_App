@@ -166,7 +166,8 @@
                             app:cardElevation="0dp"
                             app:strokeWidth="1dp"
                             app:strokeColor="@color/lines"
-                            app:cardBackgroundColor="@color/image_selector">
+                            app:cardBackgroundColor="@color/image_selector"
+                            android:layout_marginBottom="16dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
@@ -227,6 +228,89 @@
                                 </LinearLayout>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:baselineAligned="false">
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Avg. Revenue"
+                                    android:textSize="12sp"
+                                    android:textColor="@color/on_boarding_description"/>
+                                <TextView
+                                    android:id="@+id/tvAvgRevenue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="₹4,500.00"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/black"
+                                    android:layout_marginBottom="12dp"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Revenue Lost"
+                                    android:textSize="12sp"
+                                    android:textColor="@color/on_boarding_description"/>
+                                <TextView
+                                    android:id="@+id/tvLostRevenue"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="₹2,000.00"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#D32F2F"/>
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Total Refunds"
+                                    android:textSize="12sp"
+                                    android:textColor="@color/on_boarding_description"/>
+                                <TextView
+                                    android:id="@+id/tvRefunds"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="₹1,500.00"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/black"
+                                    android:layout_marginBottom="12dp"/>
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Cancellation Rate"
+                                    android:textSize="12sp"
+                                    android:textColor="@color/on_boarding_description"/>
+                                <TextView
+                                    android:id="@+id/tvCancelRate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    tools:text="12.5%"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="@color/black"/>
+                            </LinearLayout>
+                        </LinearLayout>
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

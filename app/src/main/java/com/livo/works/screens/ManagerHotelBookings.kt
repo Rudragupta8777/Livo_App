@@ -65,10 +65,17 @@ class ManagerHotelBookings : AppCompatActivity() {
 
                         // Format Currency for India (₹)
                         val format = NumberFormat.getCurrencyInstance(Locale("en", "IN"))
-                        binding.tvTotalRevenue.text = format.format(report.confirmedRevenue)
 
+                        // Main Stats
+                        binding.tvTotalRevenue.text = format.format(report.confirmedRevenue)
                         binding.tvConfirmedBookings.text = "${report.confirmedBookings} Bookings"
                         binding.tvCancelledBookings.text = "${report.cancelledBookings} Bookings"
+
+                        // Detailed Stats
+                        binding.tvAvgRevenue.text = format.format(report.avgRevenuePerConfirmedBooking)
+                        binding.tvLostRevenue.text = format.format(report.revenueLostToCancellations)
+                        binding.tvRefunds.text = format.format(report.totalRefundsProcessed)
+                        binding.tvCancelRate.text = String.format("%.1f%%", report.cancellationRate)
                     }
                     is UiState.Error -> {
                         binding.cvReportDashboard.visibility = View.GONE

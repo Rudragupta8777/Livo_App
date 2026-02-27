@@ -17,6 +17,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.chip.ChipGroup
+import com.google.android.material.textfield.TextInputLayout
 import com.livo.works.Booking.data.GuestDto
 import com.livo.works.R
 import com.livo.works.ViewModel.BookingViewModel
@@ -160,15 +161,32 @@ class AddGuest : AppCompatActivity() {
 
         for (i in 0 until binding.containerGuests.childCount) {
             val child = binding.containerGuests.getChildAt(i)
+
+            // Link to TextInputLayout for the red outline errors
+            val tilName = child.findViewById<TextInputLayout>(R.id.tilGuestName)
+            val tilAge = child.findViewById<TextInputLayout>(R.id.tilGuestAge)
+
             val etName = child.findViewById<EditText>(R.id.etGuestName)
             val etAge = child.findViewById<EditText>(R.id.etGuestAge)
             val cgGender = child.findViewById<ChipGroup>(R.id.cgGender)
 
+            // Clear previous errors
+            tilName.error = null
+            tilAge.error = null
+
             val name = etName.text.toString().trim()
             val ageStr = etAge.text.toString().trim()
 
-            if (name.isEmpty()) { etName.error = "Name required"; isValid = false }
-            if (ageStr.isEmpty()) { etAge.error = "Age required"; isValid = false }
+            if (name.isEmpty()) {
+                tilName.error = "Name required"
+                shakeView(tilName)
+                isValid = false
+            }
+            if (ageStr.isEmpty()) {
+                tilAge.error = "Age required"
+                shakeView(tilAge)
+                isValid = false
+            }
 
             val gender = when (cgGender.checkedChipId) {
                 R.id.chipMale -> "MALE"
@@ -176,7 +194,7 @@ class AddGuest : AppCompatActivity() {
                 else -> "OTHER"
             }
 
-            if (isValid) {
+            if (name.isNotEmpty() && ageStr.isNotEmpty()) {
                 // IMPORTANT: We use null for userId/id here as they are created by backend
                 guestList.add(GuestDto(name = name, age = ageStr.toIntOrNull() ?: 18, gender = gender))
             }
@@ -187,6 +205,17 @@ class AddGuest : AppCompatActivity() {
             bookingViewModel.addGuests(bookingId, guestList)
         } else {
             Toast.makeText(this, "Please fill all details", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Helper method to make the input box shake on error
+    private fun shakeView(view: View) {
+        ObjectAnimator.ofFloat(
+            view, "translationX",
+            0f, 25f, -25f, 25f, -25f, 15f, -15f, 6f, -6f, 0f
+        ).apply {
+            duration = 500
+            start()
         }
     }
 

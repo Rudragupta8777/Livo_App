@@ -2,12 +2,13 @@ package com.livo.works.screens
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.OvershootInterpolator
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -26,10 +27,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class Signup : AppCompatActivity() {
-
     private val viewModel: SignupViewModel by viewModels()
-
-    // Views
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
     private lateinit var tilName: TextInputLayout
@@ -39,8 +37,13 @@ class Signup : AppCompatActivity() {
     private lateinit var etEmail: TextInputEditText
     private lateinit var etPassword: TextInputEditText
     private lateinit var btnSignup: MaterialButton
-    private lateinit var progressBar: ProgressBar
     private lateinit var tvLogin: TextView
+    private lateinit var loadingOverlay: View
+    private lateinit var dot1: View
+    private lateinit var dot2: View
+    private lateinit var dot3: View
+    private lateinit var dot4: View
+    private val dotAnimators = mutableListOf<ObjectAnimator>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,6 +56,11 @@ class Signup : AppCompatActivity() {
         runEntranceAnimations()
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        stopDotAnimation()
+    }
+
     private fun initializeViews() {
         tvTitle = findViewById(R.id.tvTitle)
         tvSubtitle = findViewById(R.id.tvSubtitle)
@@ -63,10 +71,15 @@ class Signup : AppCompatActivity() {
         etEmail = findViewById(R.id.etEmail)
         etPassword = findViewById(R.id.etPassword)
         btnSignup = findViewById(R.id.btnSignup)
-        progressBar = findViewById(R.id.progressBar)
         tvLogin = findViewById(R.id.tvLogin)
 
-        // Initial Alpha for Animations
+        loadingOverlay = findViewById(R.id.loadingOverlay)
+        dot1 = findViewById(R.id.dot1)
+        dot2 = findViewById(R.id.dot2)
+        dot3 = findViewById(R.id.dot3)
+        dot4 = findViewById(R.id.dot4)
+
+
         tvTitle.alpha = 0f
         tvSubtitle.alpha = 0f
         tilName.alpha = 0f
@@ -117,6 +130,7 @@ class Signup : AppCompatActivity() {
             }
 
             if (isValid) {
+                Log.d("AUTH_DEBUG", "Signup -> Initiate Clicked. Email: $email")
                 animateButtonClick(btnSignup)
                 viewModel.initiateSignup(name, email, pass)
             } else {
@@ -146,6 +160,8 @@ class Signup : AppCompatActivity() {
 
                     is UiState.Success -> {
                         showLoading(false)
+                        Log.d("AUTH_DEBUG", "Signup -> API Success! RegID received: ${state.data?.registrationId}")
+
                         animateSuccess {
                             val response = state.data
                             val intent = Intent(this@Signup, OtpVerification::class.java).apply {
@@ -159,6 +175,7 @@ class Signup : AppCompatActivity() {
 
                     is UiState.Error -> {
                         showLoading(false)
+                        Log.e("AUTH_DEBUG", "Signup -> API Error: ${state.message}")
                         Toast.makeText(this@Signup, state.message, Toast.LENGTH_LONG).show()
                         // Shake the button to indicate failure
                         shakeView(btnSignup)
@@ -174,18 +191,55 @@ class Signup : AppCompatActivity() {
         if (isLoading) {
             btnSignup.text = ""
             btnSignup.isEnabled = false
-            progressBar.visibility = View.VISIBLE
             etName.isEnabled = false
             etEmail.isEnabled = false
             etPassword.isEnabled = false
+
+            loadingOverlay.visibility = View.VISIBLE
+            loadingOverlay.alpha = 0f
+            loadingOverlay.animate().alpha(1f).setDuration(300).start()
+            startDotAnimation()
         } else {
             btnSignup.text = "Continue"
             btnSignup.isEnabled = true
-            progressBar.visibility = View.GONE
             etName.isEnabled = true
             etEmail.isEnabled = true
             etPassword.isEnabled = true
+
+            stopDotAnimation()
+            loadingOverlay.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    loadingOverlay.visibility = View.GONE
+                }
+                .start()
         }
+    }
+
+    private fun startDotAnimation() {
+        val dots = listOf(dot1, dot2, dot3, dot4)
+        dotAnimators.clear()
+
+        dots.forEachIndexed { index, dot ->
+            val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.5f, 1f)
+            val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.5f, 1f)
+            val alpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.5f, 1f)
+
+            val animator = ObjectAnimator.ofPropertyValuesHolder(dot, scaleX, scaleY, alpha)
+            animator.duration = 800
+            animator.repeatCount = ObjectAnimator.INFINITE
+            animator.interpolator = AccelerateDecelerateInterpolator()
+            animator.startDelay = (index * 150).toLong()
+
+            animator.start()
+            dotAnimators.add(animator)
+        }
+    }
+
+    private fun stopDotAnimation() {
+        dotAnimators.forEach { it.cancel() }
+        dotAnimators.clear()
     }
 
     private fun runEntranceAnimations() {

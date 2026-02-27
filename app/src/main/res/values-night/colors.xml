@@ -10,7 +10,7 @@
 
     <color name="login_input_box">#767676</color>
     <color name="card_outline_color">#3BFFFFFF</color>
-    <color name="search_blur">#14FFFFFF</color>
+    <color name="search_blur">#14A8A8A8</color>
 
     <color name="lines">#767676</color>
 

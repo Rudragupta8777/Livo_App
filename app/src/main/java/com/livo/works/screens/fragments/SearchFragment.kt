@@ -55,7 +55,6 @@ class SearchFragment : Fragment() {
     private val apiDateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
     private var selectedStartDate: String = ""
     private var selectedEndDate: String = ""
-
     private var roomCount = 1
     private var adultCount = 2
     private val dotAnimators = mutableListOf<ObjectAnimator>()
@@ -77,7 +76,7 @@ class SearchFragment : Fragment() {
         setupRecyclerView()
         setupClickListeners()
         observeSearch()
-        observePagination() // NEW
+        observePagination()
     }
 
     private fun initDefaultDates() {
@@ -185,7 +184,7 @@ class SearchFragment : Fragment() {
     private fun showGuestSelectorDialog() {
         val dialog = Dialog(requireContext())
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
-        dialog.setContentView(R.layout.dialog_guest_selector)
+        dialog.setContentView(R.layout.dialog_room_selector)
 
         dialog.window?.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
         dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)

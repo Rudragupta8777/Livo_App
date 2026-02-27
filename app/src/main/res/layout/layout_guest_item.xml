@@ -32,7 +32,7 @@
 
                 <ImageView
                     android:src="@drawable/ic_dark_profile"
-                    android:tint="@color/text_primary"
+                    app:tint="@color/text_primary"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"/>
             </LinearLayout>
@@ -72,6 +72,7 @@
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/tilGuestName"
             style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -101,6 +102,7 @@
             android:baselineAligned="false">
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilGuestAge"
                 style="@style/Widget.Material3.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"

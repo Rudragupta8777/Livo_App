@@ -1,6 +1,7 @@
 package com.livo.works.screens
 
 import android.animation.ObjectAnimator
+import android.animation.PropertyValuesHolder
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
@@ -8,6 +9,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
@@ -27,7 +29,6 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class ResetPassword : AppCompatActivity() {
-
     private val viewModel: ForgotPasswordViewModel by viewModels()
     private var registrationId: String? = null
     private lateinit var resetMainContent: View
@@ -43,7 +44,12 @@ class ResetPassword : AppCompatActivity() {
     private lateinit var tilPass: TextInputLayout
     private lateinit var tilConfirmPass: TextInputLayout
     private lateinit var btnReset: MaterialButton
-    private lateinit var progressBar: ProgressBar
+    private lateinit var loadingOverlay: View
+    private lateinit var dot1: View
+    private lateinit var dot2: View
+    private lateinit var dot3: View
+    private lateinit var dot4: View
+    private val dotAnimators = mutableListOf<ObjectAnimator>()
     private lateinit var successContainer: View
     private lateinit var lottieSuccess: LottieAnimationView
     private lateinit var tvSuccessTitle: TextView
@@ -60,6 +66,7 @@ class ResetPassword : AppCompatActivity() {
         enableEdgeToEdge()
 
         initViews()
+
         val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
 
         registrationId = intent.getStringExtra("REG_ID") ?: prefs.getString("REG_ID", null)
@@ -77,7 +84,9 @@ class ResetPassword : AppCompatActivity() {
         setupListeners()
         observeViewModel()
 
-        viewModel.startTimer(nextResend)
+        if (nextResend > 0L) {
+            viewModel.startTimer(nextResend)
+        }
 
         etHiddenOtp.requestFocus()
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
@@ -86,6 +95,7 @@ class ResetPassword : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        stopDotAnimation()
         mediaPlayer?.release()
     }
 
@@ -112,7 +122,12 @@ class ResetPassword : AppCompatActivity() {
         tilPass = findViewById(R.id.tilPass)
         tilConfirmPass = findViewById(R.id.tilConfirmPass)
         btnReset = findViewById(R.id.btnReset)
-        progressBar = findViewById(R.id.progressBar)
+
+        loadingOverlay = findViewById(R.id.loadingOverlay)
+        dot1 = findViewById(R.id.dot1)
+        dot2 = findViewById(R.id.dot2)
+        dot3 = findViewById(R.id.dot3)
+        dot4 = findViewById(R.id.dot4)
 
         successContainer = findViewById(R.id.successContainer)
         lottieSuccess = findViewById(R.id.lottieSuccess)
@@ -154,9 +169,9 @@ class ResetPassword : AppCompatActivity() {
 
     private fun setupListeners() {
         btnReset.setOnClickListener {
-            val otp = etHiddenOtp.text.toString()
-            val pass = etPass.text.toString()
-            val confirm = etConfirmPass.text.toString()
+            val otp = etHiddenOtp.text.toString().trim()
+            val pass = etPass.text.toString().trim()
+            val confirm = etConfirmPass.text.toString().trim()
 
             tilPass.error = null
             tilConfirmPass.error = null
@@ -179,7 +194,6 @@ class ResetPassword : AppCompatActivity() {
                 viewModel.resetPassword(registrationId!!, otp, pass)
             } else {
                 Toast.makeText(this, "Session lost. Please request OTP again.", Toast.LENGTH_LONG).show()
-                // Optionally redirect back to ForgotPassword screen
             }
         }
 
@@ -217,28 +231,25 @@ class ResetPassword : AppCompatActivity() {
             viewModel.completeState.collect { state ->
                 when(state) {
                     is UiState.Loading -> {
-                        progressBar.visibility = View.VISIBLE
-                        btnReset.isEnabled = false
+                        showLoading(true)
                     }
                     is UiState.Success -> {
-                        progressBar.visibility = View.GONE
+                        getSharedPreferences("livo_auth", Context.MODE_PRIVATE).edit().clear().apply()
+                        showLoading(false)
                         showSuccessAnimation()
                     }
                     is UiState.SessionExpired -> {
-                        progressBar.visibility = View.GONE
+                        showLoading(false)
                         Toast.makeText(this@ResetPassword, "Session Expired. Please Login again.", Toast.LENGTH_LONG).show()
                         navigateToLogin()
                     }
                     is UiState.Error -> {
-                        progressBar.visibility = View.GONE
-                        btnReset.isEnabled = true
-
+                        showLoading(false)
                         val msg = state.message.lowercase()
 
                         if (msg.contains("limit") || msg.contains("maximum") || msg.contains("exceeded")) {
                             showErrorPopup(state.message)
-                        }
-                        else {
+                        } else {
                             showOtpError()
                             Toast.makeText(this@ResetPassword, state.message, Toast.LENGTH_LONG).show()
                         }
@@ -287,6 +298,68 @@ class ResetPassword : AppCompatActivity() {
             pbTimer.progress = 0
         }
     }
+
+    // ==========================================
+    // LOADING ANIMATIONS
+    // ==========================================
+    private fun showLoading(isLoading: Boolean) {
+        if (isLoading) {
+            btnReset.text = ""
+            btnReset.isEnabled = false
+            etHiddenOtp.isEnabled = false
+            etPass.isEnabled = false
+            etConfirmPass.isEnabled = false
+
+            loadingOverlay.visibility = View.VISIBLE
+            loadingOverlay.alpha = 0f
+            loadingOverlay.animate().alpha(1f).setDuration(300).start()
+            startDotAnimation()
+        } else {
+            btnReset.text = "Reset Password"
+            btnReset.isEnabled = true
+            etHiddenOtp.isEnabled = true
+            etPass.isEnabled = true
+            etConfirmPass.isEnabled = true
+
+            stopDotAnimation()
+            loadingOverlay.animate()
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    loadingOverlay.visibility = View.GONE
+                }
+                .start()
+        }
+    }
+
+    private fun startDotAnimation() {
+        val dots = listOf(dot1, dot2, dot3, dot4)
+        dotAnimators.clear()
+
+        dots.forEachIndexed { index, dot ->
+            val scaleX = PropertyValuesHolder.ofFloat(View.SCALE_X, 1f, 1.5f, 1f)
+            val scaleY = PropertyValuesHolder.ofFloat(View.SCALE_Y, 1f, 1.5f, 1f)
+            val alpha = PropertyValuesHolder.ofFloat(View.ALPHA, 1f, 0.5f, 1f)
+
+            val animator = ObjectAnimator.ofPropertyValuesHolder(dot, scaleX, scaleY, alpha)
+            animator.duration = 800
+            animator.repeatCount = ObjectAnimator.INFINITE
+            animator.interpolator = AccelerateDecelerateInterpolator()
+            animator.startDelay = (index * 150).toLong()
+
+            animator.start()
+            dotAnimators.add(animator)
+        }
+    }
+
+    private fun stopDotAnimation() {
+        dotAnimators.forEach { it.cancel() }
+        dotAnimators.clear()
+    }
+
+    // ==========================================
+    // UI FEEDBACK ANIMATIONS
+    // ==========================================
 
     private fun showSuccessAnimation() {
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

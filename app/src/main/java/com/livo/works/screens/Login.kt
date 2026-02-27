@@ -297,7 +297,7 @@ class Login : AppCompatActivity() {
         }
 
         lifecycleScope.launch {
-            Toast.makeText(this@Login, "✓ Login Successful!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@Login, "Login Successful", Toast.LENGTH_SHORT).show()
             delay(500)
             onComplete()
         }

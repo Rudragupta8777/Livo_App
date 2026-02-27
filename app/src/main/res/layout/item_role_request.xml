@@ -30,8 +30,9 @@
                 android:layout_height="56dp"
                 app:cardCornerRadius="28dp"
                 app:cardElevation="0dp"
-                app:strokeWidth="0dp"
-                app:cardBackgroundColor="#F0F0F0">
+                app:strokeWidth="4dp"
+                app:strokeColor="@color/white"
+                app:cardBackgroundColor="@color/text_primary">
 
                 <TextView
                     android:id="@+id/tvRequestInitials"
@@ -40,7 +41,7 @@
                     tools:text="H"
                     android:textSize="20sp"
                     android:fontFamily="sans-serif-black"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:gravity="center"/>
             </com.google.android.material.card.MaterialCardView>
 
@@ -66,7 +67,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     tools:text="hacker.baba2907@gmail.com"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:textColor="@color/on_boarding_description"
                     android:layout_marginTop="2dp"/>
 
@@ -87,7 +88,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Requesting: "
+                android:text="Requesting : "
                 android:textSize="11sp"
                 android:textColor="@color/on_boarding_description"/>
 

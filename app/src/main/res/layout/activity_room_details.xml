@@ -276,7 +276,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Price per night"
-                    android:textSize="13sp"
+                    android:textSize="12sp"
                     android:letterSpacing="0.02"
                     android:textColor="@color/on_boarding_description"/>
 
@@ -286,7 +286,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
                     android:text="₹5,499"
-                    android:textSize="26sp"
+                    android:textSize="24sp"
                     android:fontFamily="sans-serif-black"
                     android:letterSpacing="0.01"
                     android:textColor="@color/text_primary"/>
@@ -294,8 +294,8 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnBookNow"
-                android:layout_width="170dp"
-                android:layout_height="58dp"
+                android:layout_width="160dp"
+                android:layout_height="60dp"
                 android:text="Book Now"
                 android:textSize="16sp"
                 android:textStyle="bold"
