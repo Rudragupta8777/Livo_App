@@ -175,12 +175,12 @@ class BookingDetails : AppCompatActivity() {
 
                 // Replace warning text with refund status
                 val refundText = if (!data.refundStatus.isNullOrEmpty()) {
-                    "Refund Status: ${data.refundStatus}"
+                    "Refund Status : ${data.refundStatus.uppercase()}"
                 } else {
                     "Refund Status: Processing"
                 }
                 tvCancelWarning.text = refundText
-                tvCancelWarning.setTextColor(Color.parseColor("#C62828")) // Make it red to stand out, or change to standard color
+                tvCancelWarning.setTextColor(Color.parseColor("#4CAF50"))
 
             } else {
                 tvStatus.setBackgroundResource(R.drawable.bg_status_failed)
