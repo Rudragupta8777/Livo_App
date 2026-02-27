@@ -49,8 +49,6 @@ class OtpVerification : AppCompatActivity() {
     private lateinit var otpContainer: View
     private lateinit var etHiddenOtp: EditText
     private val otpBoxes = ArrayList<TextView>()
-
-    // Success Animation Views
     private lateinit var successContainer: ConstraintLayout
     private lateinit var lottieSuccess: LottieAnimationView
     private lateinit var tvSuccessTitle: TextView
@@ -68,7 +66,12 @@ class OtpVerification : AppCompatActivity() {
 
         initializeViews()
 
-        registrationId = intent.getStringExtra("REG_ID")
+        val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
+
+        registrationId = intent.getStringExtra("REG_ID") ?: prefs.getString("REG_ID", null)
+        registrationId?.let {
+            prefs.edit().putString("REG_ID", it).apply()
+        }
         val nextResendAt = intent.getLongExtra("RESEND_TIME", 0L)
 
         setupOtpInputLogic()

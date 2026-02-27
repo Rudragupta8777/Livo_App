@@ -1,5 +1,6 @@
 package com.livo.works.screens
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -50,6 +51,10 @@ class ForgotPassword : AppCompatActivity() {
                     is UiState.Success -> {
                         progressBar.visibility = View.GONE
                         btnSend.isEnabled = true
+
+                        // Cache it immediately
+                        val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
+                        prefs.edit().putString("REG_ID", state.data?.registrationId).apply()
 
                         val intent = Intent(this@ForgotPassword, ResetPassword::class.java)
                         intent.putExtra("REG_ID", state.data?.registrationId)

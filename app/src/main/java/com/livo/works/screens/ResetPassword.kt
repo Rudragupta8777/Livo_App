@@ -30,37 +30,27 @@ class ResetPassword : AppCompatActivity() {
 
     private val viewModel: ForgotPasswordViewModel by viewModels()
     private var registrationId: String? = null
-
-    // Views
     private lateinit var resetMainContent: View
     private lateinit var etHiddenOtp: EditText
     private val otpBoxes = ArrayList<TextView>()
     private lateinit var otpContainer: View
-
-    // Timer Views
     private lateinit var timerLayout: View
     private lateinit var tvTimer: TextView
     private lateinit var pbTimer: ProgressBar
     private lateinit var tvResendBtn: TextView
-
     private lateinit var etPass: TextInputEditText
     private lateinit var etConfirmPass: TextInputEditText
     private lateinit var tilPass: TextInputLayout
     private lateinit var tilConfirmPass: TextInputLayout
     private lateinit var btnReset: MaterialButton
     private lateinit var progressBar: ProgressBar
-
-    // Success
     private lateinit var successContainer: View
     private lateinit var lottieSuccess: LottieAnimationView
     private lateinit var tvSuccessTitle: TextView
     private lateinit var tvSuccessMsg: TextView
     private lateinit var btnBackToLogin: MaterialButton
-
-    // Error Popup
     private lateinit var errorOverlay: View
     private lateinit var tvErrorPopupMsg: TextView
-
     private var mediaPlayer: MediaPlayer? = null
     private var isErrorState = false
 
@@ -70,8 +60,12 @@ class ResetPassword : AppCompatActivity() {
         enableEdgeToEdge()
 
         initViews()
+        val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
 
-        registrationId = intent.getStringExtra("REG_ID")
+        registrationId = intent.getStringExtra("REG_ID") ?: prefs.getString("REG_ID", null)
+        registrationId?.let {
+            prefs.edit().putString("REG_ID", it).apply()
+        }
         val nextResend = intent.getLongExtra("RESEND_TIME", 0L)
         val email = intent.getStringExtra("EMAIL")
 
@@ -183,6 +177,9 @@ class ResetPassword : AppCompatActivity() {
 
             if (registrationId != null) {
                 viewModel.resetPassword(registrationId!!, otp, pass)
+            } else {
+                Toast.makeText(this, "Session lost. Please request OTP again.", Toast.LENGTH_LONG).show()
+                // Optionally redirect back to ForgotPassword screen
             }
         }
 

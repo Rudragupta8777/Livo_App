@@ -16,6 +16,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import javax.inject.Named
@@ -25,6 +26,10 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
     private const val BASE_URL = BuildConfig.BACKEND_URL
+
+    val logging = HttpLoggingInterceptor().apply {
+        level = HttpLoggingInterceptor.Level.BODY
+    }
 
     @Provides
     @Singleton
@@ -38,6 +43,7 @@ object NetworkModule {
                 }
                 chain.proceed(request.build())
             }
+            .addInterceptor(logging)
             .build()
     }
 
@@ -56,6 +62,7 @@ object NetworkModule {
                 }
                 chain.proceed(request.build())
             }
+            .addInterceptor(logging)
             .authenticator(authenticator)
             .build()
     }
