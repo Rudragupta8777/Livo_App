@@ -51,6 +51,19 @@ class HomeFragment : Fragment() {
             }
         }
 
+        binding.profile.setOnClickListener {
+            val bottomNav = requireActivity().findViewById<BottomNavigationView>(R.id.bottomNav)
+
+            if (bottomNav != null) {
+                bottomNav.selectedItemId = R.id.nav_profile
+            } else {
+                parentFragmentManager.beginTransaction()
+                    .replace(R.id.fragmentContainer, ProfileFragment())
+                    .addToBackStack(null)
+                    .commit()
+            }
+        }
+
         binding.swipeRefreshLayout.setOnRefreshListener {
             viewModel.fetchBestHotels(forceRefresh = true)
         }
