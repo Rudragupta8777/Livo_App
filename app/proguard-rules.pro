@@ -35,3 +35,24 @@
 
 # If you are using GSON (likely yes), keep this too just in case
 -keep class com.google.gson.** { *; }
+
+# Livo Data Classes - Keep these safe from obfuscation so Gson can parse JSON
+-keep class com.livo.works.Auth.data.** { *; }
+-keep class com.livo.works.Booking.data.** { *; }
+-keep class com.livo.works.Manager.data.** { *; }
+-keep class com.livo.works.Payment.data.** { *; }
+-keep class com.livo.works.Role.data.** { *; }
+-keep class com.livo.works.Room.data.** { *; }
+-keep class com.livo.works.Search.data.** { *; }
+
+# --- RETROFIT & GSON GENERIC TYPE FIX (CRITICAL FOR API CALLS) ---
+-keepattributes Signature
+-keepattributes Exceptions
+-keepattributes *Annotation*
+-keepattributes EnclosingMethod
+-keepattributes InnerClasses
+
+-keep class retrofit2.** { *; }
+-keepclasseswithmembers class * {
+    @retrofit2.http.* <methods>;
+}

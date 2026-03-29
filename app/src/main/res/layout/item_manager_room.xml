@@ -68,7 +68,7 @@
                 tools:text="Deluxe Guest Room"
                 android:textSize="20sp"
                 android:fontFamily="sans-serif-black"
-                android:textColor="@color/white"
+                android:textColor="#E0E0E0"
                 android:maxLines="1"
                 android:ellipsize="end"/>
 

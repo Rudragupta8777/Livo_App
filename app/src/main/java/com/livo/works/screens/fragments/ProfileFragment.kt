@@ -2,19 +2,29 @@ package com.livo.works.screens.fragments
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.Dialog
 import android.content.Intent
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.InsetDrawable
+import android.net.Uri
 import android.os.Bundle
 import android.util.Base64
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.Window
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.livo.works.Auth.repository.AuthRepository
 import com.livo.works.Role.repository.RoleRepository
 import com.livo.works.databinding.FragmentProfileBinding
 import com.livo.works.screens.AdminRequests
+import com.livo.works.screens.Developers
 import com.livo.works.screens.Login
 import com.livo.works.screens.ManagerProperties
 import com.livo.works.security.TokenManager
@@ -23,6 +33,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 import javax.inject.Inject
+import com.livo.works.R
 
 @AndroidEntryPoint
 class ProfileFragment : Fragment() {
@@ -144,9 +155,58 @@ class ProfileFragment : Fragment() {
             startActivity(Intent(requireContext(), ManagerProperties::class.java))
         }
 
+        // --- NEW CLICK LISTENERS ---
+        binding.btnDevelopers.setOnClickListener {
+            startActivity(Intent(requireContext(), Developers::class.java))
+        }
+
+        binding.btnContactUs.setOnClickListener {
+            showContactUsDialog()
+        }
+
         binding.btnLogout.setOnClickListener {
             handleLogout()
         }
+    }
+
+    private fun showContactUsDialog() {
+        val dialog = Dialog(requireContext())
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE)
+
+        val layout = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_contact_us, null)
+        dialog.setContentView(layout)
+
+        // Convert 30dp to pixels
+        val marginPx = (30 * resources.displayMetrics.density).toInt()
+
+        // Wrap the transparent background in an InsetDrawable to force the left/right margins
+        val insetDrawable =
+            InsetDrawable(ColorDrawable(Color.TRANSPARENT), marginPx, 0, marginPx, 0)
+        dialog.window?.setBackgroundDrawable(insetDrawable)
+
+        // Ensure it fills the width (minus the margins we just applied above)
+        dialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        dialog.window?.setGravity(Gravity.CENTER)
+
+        val btnEmailSupport = layout.findViewById<MaterialButton>(R.id.btnEmailSupport)
+        val btnClose = layout.findViewById<ImageView>(R.id.btnClose)
+
+        btnEmailSupport.setOnClickListener {
+            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("mailto:support@livo.com")
+                putExtra(Intent.EXTRA_SUBJECT, "Support Request - Livo App")
+            }
+            try {
+                startActivity(Intent.createChooser(emailIntent, "Send email..."))
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "No email app found", Toast.LENGTH_SHORT).show()
+            }
+            dialog.dismiss()
+        }
+
+        btnClose.setOnClickListener { dialog.dismiss() }
+
+        dialog.show()
     }
 
     private fun requestManagerAccess() {
