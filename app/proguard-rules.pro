@@ -20,39 +20,59 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# Razorpay ProGuard Rules
--keep class com.razorpay.** { *; }
--dontwarn com.razorpay.**
+# ==========================================
+# 1. RETROFIT & COROUTINES (CRITICAL FOR <T>)
+# ==========================================
+# Keeps the generic signatures intact so Gson can read them
+-keepattributes Signature, Exceptions, *Annotation*, EnclosingMethod, InnerClasses
 
-# Keep generic Javascript interfaces (Required for Razorpay's web view)
--keepclassmembers class * {
-    @android.webkit.JavascriptInterface <methods>;
-}
+# Prevents R8 from erasing Coroutines
+-keep class kotlin.coroutines.Continuation
 
-# Keep JSON classes (Razorpay uses them internally)
--keep class org.json.** { *; }
--keep interface org.json.** { *; }
-
-# If you are using GSON (likely yes), keep this too just in case
--keep class com.google.gson.** { *; }
-
-# Livo Data Classes - Keep these safe from obfuscation so Gson can parse JSON
--keep class com.livo.works.Auth.data.** { *; }
--keep class com.livo.works.Booking.data.** { *; }
--keep class com.livo.works.Manager.data.** { *; }
--keep class com.livo.works.Payment.data.** { *; }
--keep class com.livo.works.Role.data.** { *; }
--keep class com.livo.works.Room.data.** { *; }
--keep class com.livo.works.Search.data.** { *; }
-
-# --- RETROFIT & GSON GENERIC TYPE FIX (CRITICAL FOR API CALLS) ---
--keepattributes Signature
--keepattributes Exceptions
--keepattributes *Annotation*
--keepattributes EnclosingMethod
--keepattributes InnerClasses
-
+# Keep Retrofit core safe
+-keep interface retrofit2.** { *; }
 -keep class retrofit2.** { *; }
 -keepclasseswithmembers class * {
     @retrofit2.http.* <methods>;
 }
+
+# ==========================================
+# 2. GSON REFLECTION (CRITICAL FOR <T>)
+# ==========================================
+# Prevent R8 from stripping generic types used by Gson's TypeToken
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+-keep class com.google.gson.** { *; }
+-dontwarn sun.misc.Unsafe
+-keep class sun.misc.Unsafe { *; }
+-keep class com.google.gson.stream.** { *; }
+
+# ==========================================
+# 3. LIVO DATA MODELS & WRAPPERS
+# ==========================================
+# Wildcard rule: Keeps ALL classes inside ANY folder named 'data' completely safe
+-keep class com.livo.works.**.data.** { *; }
+
+# Keep API interfaces safe
+-keep interface com.livo.works.Api.** { *; }
+-keep class com.livo.works.Api.** { *; }
+
+# Keep your Utility classes safe (crucial for UiState<T>)
+-keep class com.livo.works.util.** { *; }
+
+# Keep ViewModels safe so StateFlow generics aren't mangled
+-keep class com.livo.works.ViewModel.** { *; }
+
+# ==========================================
+# 4. RAZORPAY RULES
+# ==========================================
+-keep class com.razorpay.** { *; }
+-dontwarn com.razorpay.**
+-keepclassmembers class * {
+    @android.webkit.JavascriptInterface <methods>;
+}
+-keep class org.json.** { *; }
+-keep interface org.json.** { *; }

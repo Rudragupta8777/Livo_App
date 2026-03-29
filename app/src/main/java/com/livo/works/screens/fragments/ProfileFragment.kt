@@ -193,7 +193,7 @@ class ProfileFragment : Fragment() {
 
         btnEmailSupport.setOnClickListener {
             val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:support@livo.com")
+                data = Uri.parse("mailto:support@livo.works")
                 putExtra(Intent.EXTRA_SUBJECT, "Support Request - Livo App")
             }
             try {
