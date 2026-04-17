@@ -22,6 +22,7 @@ import com.livo.works.Booking.data.GuestDto
 import com.livo.works.R
 import com.livo.works.ViewModel.BookingViewModel
 import com.livo.works.databinding.ActivityAddGuestBinding
+import com.livo.works.screens.fragments.SearchFragment
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -242,11 +243,8 @@ class AddGuest : AppCompatActivity() {
                         binding.btnContinue.isEnabled = true
                         bookingViewModel.resetAddGuestState()
 
-                        if (state.message == "BAD_REQUEST") {
+                        if (state.message != "BAD_REQUEST") {
                             Toast.makeText(this@AddGuest, "Session Expired. Please restart booking.", Toast.LENGTH_LONG).show()
-                            val intent = Intent(this@AddGuest, HotelDetails::class.java)
-                            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                            startActivity(intent)
                             finish()
                         } else {
                             Toast.makeText(this@AddGuest, state.message, Toast.LENGTH_SHORT).show()
