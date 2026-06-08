@@ -172,3 +172,9 @@ com.livo.works
 | **Media Handling** | ✅ Complete | Image compression and remote Cloudinary URL integration |
 | **Process Resilience** | ✅ Complete | Survives background OS kills via persistent secure storage |
 
+---
+
+## 🔗 Related Repositories
+
+- [Livo Backend](https://github.com/pratham-developer/Livo)
+
