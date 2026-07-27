@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import com.livo.works.security.TokenManager
 import com.livo.works.screens.Login
+import com.livo.works.util.GlobalNetworkMonitor
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -31,6 +32,8 @@ class LivoApplication : Application(), Application.ActivityLifecycleCallbacks {
                 handleSessionExpired()
             }
         }
+        // This single line starts monitoring the network globally across all screens!
+        GlobalNetworkMonitor(this)
     }
 
     private fun handleSessionExpired() {
