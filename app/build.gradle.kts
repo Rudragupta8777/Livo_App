@@ -7,6 +7,8 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val localProperties = Properties()
@@ -77,6 +79,14 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // --- FIREBASE CRASHLYTICS ---
+    // Import the Firebase Bill of Materials (BoM) to automatically manage library versions
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    // Add Analytics (Required for Crashlytics to work best)
+    implementation("com.google.firebase:firebase-analytics")
+    // Add the Crashlytics SDK
+    implementation("com.google.firebase:firebase-crashlytics")
 
     // Hilt (Dependency Injection)
     implementation("com.google.dagger:hilt-android:2.48")
