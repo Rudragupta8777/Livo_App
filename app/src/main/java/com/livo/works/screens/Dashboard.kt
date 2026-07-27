@@ -4,6 +4,11 @@ import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.activity.result.contract.ActivityResultContracts // Added for Play Updates
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory // Added for Play Updates
+import com.google.android.play.core.appupdate.AppUpdateOptions // Added for Play Updates
+import com.google.android.play.core.install.model.AppUpdateType // Added for Play Updates
+import com.google.android.play.core.install.model.UpdateAvailability // Added for Play Updates
 import com.livo.works.R
 import com.livo.works.databinding.ActivityDashboardBinding
 import com.livo.works.screens.fragments.BookingFragment
@@ -22,6 +27,17 @@ class Dashboard : AppCompatActivity() {
     private lateinit var profileFragment: Fragment
 
     private lateinit var activeFragment: Fragment
+
+    // --- ADDED: Play Core Update Launcher ---
+    private val updateLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { result ->
+        if (result.resultCode != RESULT_OK) {
+            // User cancelled or the update failed.
+            // If you want to force them to update, uncomment the line below to close the app:
+            // finish()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -63,6 +79,9 @@ class Dashboard : AppCompatActivity() {
 
         setupBottomNavListener()
         handleNavigationIntent()
+
+        // --- ADDED: Trigger update check ---
+        checkForAppUpdates()
     }
 
     private fun setupBottomNavListener() {
@@ -105,6 +124,24 @@ class Dashboard : AppCompatActivity() {
         val openTab = intent.getStringExtra("OPEN_TAB")
         if (openTab == "BOOKINGS") {
             binding.bottomNav.selectedItemId = R.id.nav_booking
+        }
+    }
+
+    // --- ADDED: Play Core Update Logic ---
+    private fun checkForAppUpdates() {
+        val appUpdateManager = AppUpdateManagerFactory.create(this)
+        val appUpdateInfoTask = appUpdateManager.appUpdateInfo
+
+        appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+            if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE
+                && appUpdateInfo.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)
+            ) {
+                appUpdateManager.startUpdateFlowForResult(
+                    appUpdateInfo,
+                    updateLauncher,
+                    AppUpdateOptions.newBuilder(AppUpdateType.IMMEDIATE).build()
+                )
+            }
         }
     }
 }

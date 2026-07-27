@@ -114,4 +114,9 @@ dependencies {
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // Play In-App Updates Library
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
+    // Play In-App Reviews Library
+    implementation("com.google.android.play:review-ktx:2.0.0")
 }

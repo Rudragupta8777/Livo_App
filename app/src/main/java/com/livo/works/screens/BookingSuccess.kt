@@ -9,6 +9,7 @@ import android.view.animation.OvershootInterpolator
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
+import com.google.android.play.core.review.ReviewManagerFactory // Added for Play Reviews
 import com.livo.works.databinding.ActivityBookingSuccessBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
@@ -64,10 +65,33 @@ class BookingSuccess : AppCompatActivity() {
         binding.tvTitle.animate().alpha(1f).setDuration(400).setStartDelay(300).start()
         binding.tvSubtitle.animate().alpha(1f).setDuration(400).setStartDelay(400).start()
 
-        // Step 3: Wait 3 seconds, then redirect
+        // Step 3: Wait 3 seconds, then trigger review (which will navigate after)
         lifecycleScope.launch {
             delay(3000)
-            navigateToDetails()
+            triggerInAppReviewAndNavigate()
+        }
+    }
+
+    // --- ADDED: Play Core Review Logic ---
+    private fun triggerInAppReviewAndNavigate() {
+        val reviewManager = ReviewManagerFactory.create(this)
+        val request = reviewManager.requestReviewFlow()
+
+        request.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                // We got the ReviewInfo, launch the UI
+                val reviewInfo = task.result
+                val flow = reviewManager.launchReviewFlow(this, reviewInfo)
+
+                flow.addOnCompleteListener { _ ->
+                    // The flow finished (user reviewed or dismissed the sheet)
+                    // Now safely navigate away
+                    navigateToDetails()
+                }
+            } else {
+                // API failed or Play Store is unavailable, just navigate normally
+                navigateToDetails()
+            }
         }
     }
 
