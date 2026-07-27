@@ -4,10 +4,8 @@ import android.Manifest
 import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.location.Location
-import android.net.Uri
 import android.os.Bundle
 import android.view.View
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -17,16 +15,16 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
-import com.bumptech.glide.Glide
 import com.google.android.gms.location.LocationServices
-import com.google.android.material.card.MaterialCardView
 import com.livo.works.Manager.data.ManagerContactInfo
 import com.livo.works.Manager.data.ManagerHotelDetailsDto
-import com.livo.works.R
+import com.livo.works.Upload.ui.MediaStripRenderer
 import com.livo.works.ViewModel.ManagerViewModel
+import com.livo.works.ViewModel.MediaUploadViewModel
 import com.livo.works.databinding.ActivityUpdateHotelBinding
-import com.livo.works.util.CloudinaryHelper
+import com.livo.works.util.ImageCompressor
 import com.livo.works.util.UiState
+import com.livo.works.util.toRelativeMediaPath
 import com.mapbox.geojson.Point
 import com.mapbox.maps.CameraOptions
 import com.mapbox.maps.Style
@@ -38,21 +36,26 @@ class UpdateHotel : AppCompatActivity() {
 
     private lateinit var binding: ActivityUpdateHotelBinding
     private val viewModel: ManagerViewModel by viewModels()
+    private val uploadViewModel: MediaUploadViewModel by viewModels()
 
     private var hotelId: Long = -1L
 
+    // Photos already saved on the hotel; kept as URLs and never re-uploaded.
     private var existingImageUrls = mutableListOf<String>()
-    private val newImageUris = mutableListOf<Uri>()
 
     private var selectedLat: Double = 0.0
     private var selectedLng: Double = 0.0
 
     private var dotAnimators = mutableListOf<android.animation.ObjectAnimator>()
+    private var isSubmitting = false
+    private val photoStripRenderer by lazy { MediaStripRenderer(binding.layoutPhotoContainer) }
 
-    private val pickMultipleMedia = registerForActivityResult(ActivityResultContracts.PickMultipleVisualMedia(5)) { uris ->
+    private val pickMultipleMedia = registerForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(ImageCompressor.MAX_IMAGES)
+    ) { uris ->
         if (uris.isNotEmpty()) {
-            newImageUris.addAll(uris)
-            updatePhotoUI()
+            // Compression, presign and upload all start here.
+            uploadViewModel.addImages(uris)
         }
     }
 
@@ -91,6 +94,8 @@ class UpdateHotel : AppCompatActivity() {
 
         setupListeners()
         observeData()
+        observeUploads()
+        updateSubmitAvailability()
 
         viewModel.fetchHotelDetails(hotelId)
     }
@@ -162,6 +167,7 @@ class UpdateHotel : AppCompatActivity() {
                         finish()
                     }
                     is UiState.Error -> {
+                        isSubmitting = false
                         showLoading(false)
                         Toast.makeText(this@UpdateHotel, state.message, Toast.LENGTH_SHORT).show()
                         viewModel.resetActionState()
@@ -194,7 +200,8 @@ class UpdateHotel : AppCompatActivity() {
 
         existingImageUrls.clear()
         existingImageUrls.addAll(hotel.photos)
-        updatePhotoUI()
+        renderPhotoStrip()
+        updateSubmitAvailability()
     }
 
     private fun checkLocationPermissionAndStart() {
@@ -228,90 +235,18 @@ class UpdateHotel : AppCompatActivity() {
         }
     }
 
-    private fun updatePhotoUI() {
-        val childCount = binding.layoutPhotoContainer.childCount
-        if (childCount > 1) {
-            binding.layoutPhotoContainer.removeViews(1, childCount - 1)
-        }
-
-        val dpToPx = resources.displayMetrics.density
-
-        // Render Existing Cloudinary URLs
-        existingImageUrls.toList().forEach { url ->
-            addDeletableThumbnail(url, dpToPx, isExisting = true)
-        }
-
-        // Render New Local URIs
-        newImageUris.toList().forEach { uri ->
-            addDeletableThumbnail(uri, dpToPx, isExisting = false)
-        }
-    }
-
-    private fun addDeletableThumbnail(imageSource: Any, dpToPx: Float, isExisting: Boolean) {
-        val frameLayout = android.widget.FrameLayout(this).apply {
-            layoutParams = android.widget.LinearLayout.LayoutParams(
-                resources.getDimensionPixelSize(R.dimen.photo_size),
-                resources.getDimensionPixelSize(R.dimen.photo_size)
-            ).apply { marginEnd = 24 }
-        }
-
-        val imageCard = MaterialCardView(this).apply {
-            layoutParams = android.widget.FrameLayout.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            radius = 40f
-            strokeWidth = 0
-        }
-
-        val imageView = ImageView(this).apply {
-            layoutParams = android.view.ViewGroup.LayoutParams(
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                android.view.ViewGroup.LayoutParams.MATCH_PARENT
-            )
-            scaleType = ImageView.ScaleType.CENTER_CROP
-        }
-
-        Glide.with(this).load(imageSource).into(imageView)
-        imageCard.addView(imageView)
-        frameLayout.addView(imageCard)
-
-        // Delete Button Overlay
-        val deleteButtonCard = MaterialCardView(this).apply {
-            val cardSize = (24 * dpToPx).toInt()
-            layoutParams = android.widget.FrameLayout.LayoutParams(cardSize, cardSize).apply {
-                gravity = android.view.Gravity.TOP or android.view.Gravity.END
-                topMargin = (6 * dpToPx).toInt()
-                marginEnd = (6 * dpToPx).toInt()
-            }
-            radius = (12 * dpToPx)
-            setCardBackgroundColor(android.graphics.Color.parseColor("#80000000"))
-            strokeWidth = 0
-            cardElevation = 0f
-
-            val deleteIcon = ImageView(context).apply {
-                layoutParams = android.widget.FrameLayout.LayoutParams(
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT,
-                    android.view.ViewGroup.LayoutParams.MATCH_PARENT
-                )
-                setPadding((6 * dpToPx).toInt(), (6 * dpToPx).toInt(), (6 * dpToPx).toInt(), (6 * dpToPx).toInt())
-                setImageResource(android.R.drawable.ic_menu_close_clear_cancel)
-                imageTintList = android.content.res.ColorStateList.valueOf(android.graphics.Color.WHITE)
-            }
-            addView(deleteIcon)
-
-            setOnClickListener {
-                if (isExisting) {
-                    existingImageUrls.remove(imageSource as String)
-                } else {
-                    newImageUris.remove(imageSource as Uri)
-                }
-                updatePhotoUI()
-            }
-        }
-
-        frameLayout.addView(deleteButtonCard)
-        binding.layoutPhotoContainer.addView(frameLayout)
+    private fun renderPhotoStrip() {
+        photoStripRenderer.render(
+            uploads = uploadViewModel.items.value,
+            existingUrls = existingImageUrls,
+            onRemoveExisting = { url ->
+                existingImageUrls.remove(url)
+                renderPhotoStrip()
+                updateSubmitAvailability()
+            },
+            onRemoveUpload = { uploadViewModel.remove(it.clientId) },
+            onRetryUpload = { uploadViewModel.retry(it.clientId) }
+        )
     }
 
     private fun validateAndSubmit() {
@@ -339,54 +274,83 @@ class UpdateHotel : AppCompatActivity() {
             return
         }
 
-        if (existingImageUrls.isEmpty() && newImageUris.isEmpty()) {
+        val uploadStatus = uploadViewModel.status.value
+
+        if (existingImageUrls.isEmpty() && uploadStatus.total == 0) {
             Toast.makeText(this, "Please upload at least one photo", Toast.LENGTH_SHORT).show()
             return
         }
 
-        lifecycleScope.launch {
-            showLoading(true)
-
-            val finalPhotoUrls = mutableListOf<String>()
-            finalPhotoUrls.addAll(existingImageUrls)
-
-            for (uri in newImageUris) {
-                val url = CloudinaryHelper.uploadImage(this@UpdateHotel, uri)
-                if (url != null) {
-                    finalPhotoUrls.add(url)
-                } else {
-                    Toast.makeText(this@UpdateHotel, "Failed to upload an image", Toast.LENGTH_SHORT).show()
-                    showLoading(false)
-                    return@launch
-                }
-            }
-
-            val amenitiesList = amenitiesStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-            val formattedLocation = "$selectedLat,$selectedLng"
-
-            val updatedHotel = ManagerHotelDetailsDto(
-                id = hotelId,
-                name = name,
-                city = city,
-                photos = finalPhotoUrls,
-                amenities = amenitiesList,
-                contactInfo = ManagerContactInfo(
-                    address = address,
-                    phoneNumber = phone,
-                    email = email,
-                    location = formattedLocation
-                ),
-                active = true
-            )
-
-            viewModel.updateHotel(hotelId, updatedHotel)
+        if (uploadStatus.isUploading) {
+            Toast.makeText(this, "Please wait for the photos to finish uploading", Toast.LENGTH_SHORT).show()
+            return
         }
+
+        if (uploadStatus.hasFailed) {
+            Toast.makeText(this, "Some photos failed to upload. Retry or remove them.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val amenitiesList = amenitiesStr.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        val formattedLocation = "$selectedLat,$selectedLng"
+
+        val updatedHotel = ManagerHotelDetailsDto(
+            id = hotelId,
+            name = name,
+            city = city,
+            // Already-saved photos come back as full CDN URLs - the backend
+            // wants its own relative paths back, not the resolved URL - plus
+            // the newly uploaded temp paths, as-is.
+            photos = existingImageUrls.map { it.toRelativeMediaPath() } + uploadViewModel.uploadedTempPaths(),
+            amenities = amenitiesList,
+            contactInfo = ManagerContactInfo(
+                address = address,
+                phoneNumber = phone,
+                email = email,
+                location = formattedLocation
+            ),
+            active = true
+        )
+
+        isSubmitting = true
+        viewModel.updateHotel(hotelId, updatedHotel)
+    }
+
+    private fun observeUploads() {
+        lifecycleScope.launch {
+            uploadViewModel.items.collect { renderPhotoStrip() }
+        }
+
+        // Collected separately rather than read inside the items collector:
+        // status is its own derived flow, so reading status.value from an items
+        // emission can see a stale value and leave submit disabled for good.
+        lifecycleScope.launch {
+            uploadViewModel.status.collect { updateSubmitAvailability() }
+        }
+
+        lifecycleScope.launch {
+            uploadViewModel.messages.collect { message ->
+                Toast.makeText(this@UpdateHotel, message, Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /**
+     * Updating is allowed as long as no upload is running or failed, and at
+     * least one photo (kept or newly uploaded) remains.
+     */
+    private fun updateSubmitAvailability() {
+        val status = uploadViewModel.status.value
+        val hasPhoto = existingImageUrls.isNotEmpty() || status.uploaded > 0
+        binding.btnSubmit.isEnabled =
+            !isSubmitting && hasPhoto && !status.isUploading && !status.hasFailed
     }
 
     private fun showLoading(isLoading: Boolean) {
         binding.loadingOverlay.visibility = if (isLoading) View.VISIBLE else View.GONE
-        binding.btnSubmit.isEnabled = !isLoading
         binding.btnAddPhotos.isEnabled = !isLoading
+        isSubmitting = isLoading
+        updateSubmitAvailability()
 
         if (isLoading) startDotAnimation() else stopDotAnimation()
     }

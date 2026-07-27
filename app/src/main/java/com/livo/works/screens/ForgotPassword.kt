@@ -3,7 +3,6 @@ package com.livo.works.screens
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.PropertyValuesHolder
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -20,14 +19,19 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.livo.works.R
 import com.livo.works.ViewModel.ForgotPasswordViewModel
+import com.livo.works.security.TokenManager
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ForgotPassword : AppCompatActivity() {
     private val viewModel: ForgotPasswordViewModel by viewModels()
+
+    @Inject
+    lateinit var tokenManager: TokenManager
     private lateinit var tvTitle: TextView
     private lateinit var tvSubtitle: TextView
     private lateinit var tilEmail: TextInputLayout
@@ -102,8 +106,7 @@ class ForgotPassword : AppCompatActivity() {
                     is UiState.Success -> {
                         showLoading(false)
 
-                        val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
-                        prefs.edit().putString("REG_ID", state.data?.registrationId).apply()
+                        state.data?.registrationId?.let { tokenManager.savePendingRegistrationId(it) }
 
                         animateSuccess {
                             val intent = Intent(this@ForgotPassword, ResetPassword::class.java)

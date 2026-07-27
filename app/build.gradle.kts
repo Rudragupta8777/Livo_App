@@ -7,6 +7,8 @@ plugins {
     id("kotlin-kapt")
     id("com.google.dagger.hilt.android")
     id("kotlin-parcelize")
+    id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val localProperties = Properties()
@@ -31,12 +33,6 @@ android {
         // 2. Read the property safely
         val backendUrl = localProperties.getProperty("BACKEND_URL") ?: "https://dev.placeholder-url.com/"
         buildConfigField("String", "BACKEND_URL", "\"$backendUrl\"")
-
-        val cloudName = localProperties.getProperty("CLOUD_NAME") ?: "dvxxxxxxxx"
-        buildConfigField("String", "CLOUD_NAME", "\"$cloudName\"")
-
-        val uploadPreset = localProperties.getProperty("UPLOAD_PRESET") ?: "livo_hotel_......"
-        buildConfigField("String", "UPLOAD_PRESET", "\"$uploadPreset\"")
     }
 
     buildFeatures {
@@ -77,6 +73,14 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:logging-interceptor:4.11.0")
+
+    // --- FIREBASE CRASHLYTICS ---
+    // Import the Firebase Bill of Materials (BoM) to automatically manage library versions
+    implementation(platform("com.google.firebase:firebase-bom:32.8.0"))
+    // Add Analytics (Required for Crashlytics to work best)
+    implementation("com.google.firebase:firebase-analytics")
+    // Add the Crashlytics SDK
+    implementation("com.google.firebase:firebase-crashlytics")
 
     // Hilt (Dependency Injection)
     implementation("com.google.dagger:hilt-android:2.48")

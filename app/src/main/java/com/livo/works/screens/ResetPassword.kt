@@ -22,14 +22,19 @@ import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.livo.works.R
 import com.livo.works.ViewModel.ForgotPasswordViewModel
+import com.livo.works.security.TokenManager
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class ResetPassword : AppCompatActivity() {
     private val viewModel: ForgotPasswordViewModel by viewModels()
+
+    @Inject
+    lateinit var tokenManager: TokenManager
     private var registrationId: String? = null
     private lateinit var resetMainContent: View
     private lateinit var etHiddenOtp: EditText
@@ -67,12 +72,8 @@ class ResetPassword : AppCompatActivity() {
 
         initViews()
 
-        val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
-
-        registrationId = intent.getStringExtra("REG_ID") ?: prefs.getString("REG_ID", null)
-        registrationId?.let {
-            prefs.edit().putString("REG_ID", it).apply()
-        }
+        registrationId = intent.getStringExtra("REG_ID") ?: tokenManager.getPendingRegistrationId()
+        registrationId?.let { tokenManager.savePendingRegistrationId(it) }
         val nextResend = intent.getLongExtra("RESEND_TIME", 0L)
         val email = intent.getStringExtra("EMAIL")
 
@@ -234,7 +235,7 @@ class ResetPassword : AppCompatActivity() {
                         showLoading(true)
                     }
                     is UiState.Success -> {
-                        getSharedPreferences("livo_auth", Context.MODE_PRIVATE).edit().clear().apply()
+                        tokenManager.clearPendingRegistrationId()
                         showLoading(false)
                         showSuccessAnimation()
                     }
