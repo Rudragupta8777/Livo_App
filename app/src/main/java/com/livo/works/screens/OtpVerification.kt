@@ -27,15 +27,20 @@ import com.airbnb.lottie.LottieAnimationView
 import com.google.android.material.button.MaterialButton
 import com.livo.works.R
 import com.livo.works.ViewModel.OtpViewModel
+import com.livo.works.security.TokenManager
 import com.livo.works.util.UiState
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class OtpVerification : AppCompatActivity() {
 
     private val viewModel: OtpViewModel by viewModels()
+
+    @Inject
+    lateinit var tokenManager: TokenManager
     private var registrationId: String? = null
     private lateinit var otpMainContent: ConstraintLayout
     private lateinit var ivLockIcon: ImageView
@@ -66,12 +71,8 @@ class OtpVerification : AppCompatActivity() {
 
         initializeViews()
 
-        val prefs = getSharedPreferences("livo_auth", Context.MODE_PRIVATE)
-
-        registrationId = intent.getStringExtra("REG_ID") ?: prefs.getString("REG_ID", null)
-        registrationId?.let {
-            prefs.edit().putString("REG_ID", it).apply()
-        }
+        registrationId = intent.getStringExtra("REG_ID") ?: tokenManager.getPendingRegistrationId()
+        registrationId?.let { tokenManager.savePendingRegistrationId(it) }
         val nextResendAt = intent.getLongExtra("RESEND_TIME", 0L)
 
         setupOtpInputLogic()
@@ -260,6 +261,7 @@ class OtpVerification : AppCompatActivity() {
             }
             is UiState.Success -> {
                 if (isVerifyAction) {
+                    tokenManager.clearPendingRegistrationId()
                     showSuccessAnimation()
                 } else {
                     Toast.makeText(this, "Code sent!", Toast.LENGTH_SHORT).show()

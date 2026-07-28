@@ -19,26 +19,20 @@ if (localPropertiesFile.exists()) {
 
 android {
     namespace = "com.livo.works"
-    compileSdk = 34
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.livo.works"
         minSdk = 29
         targetSdk = 36
-        versionCode = 6
-        versionName = "1.1.0"
+        versionCode = 8
+        versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         // 2. Read the property safely
         val backendUrl = localProperties.getProperty("BACKEND_URL") ?: "https://dev.placeholder-url.com/"
         buildConfigField("String", "BACKEND_URL", "\"$backendUrl\"")
-
-        val cloudName = localProperties.getProperty("CLOUD_NAME") ?: "dvxxxxxxxx"
-        buildConfigField("String", "CLOUD_NAME", "\"$cloudName\"")
-
-        val uploadPreset = localProperties.getProperty("UPLOAD_PRESET") ?: "livo_hotel_......"
-        buildConfigField("String", "UPLOAD_PRESET", "\"$uploadPreset\"")
     }
 
     buildFeatures {
@@ -54,6 +48,9 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
         }
     }
     compileOptions {
@@ -115,8 +112,7 @@ dependencies {
 
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
-    // Mapbox
-    implementation("com.mapbox.maps:android:11.2.0")
+    implementation("com.mapbox.maps:android-ndk27:11.26.0")
 
     // Razorpay
     implementation("com.razorpay:checkout:1.6.38")

@@ -36,7 +36,7 @@ class AuthRepository @Inject constructor(
             return@withContext false
         }
 
-        Log.d(TAG, "performSilentRefresh: Starting with token: ${refreshToken.take(20)}...")
+        Log.d(TAG, "performSilentRefresh: Starting...")
 
         return@withContext try {
             val response = api.refreshToken(refreshToken).execute()

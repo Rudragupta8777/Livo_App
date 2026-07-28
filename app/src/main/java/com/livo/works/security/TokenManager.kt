@@ -40,6 +40,19 @@ class TokenManager @Inject constructor(@ApplicationContext context: Context) {
     fun getRefreshToken() = prefs.getString("refresh_token", null)
     fun getEmail() = prefs.getString("user_email", "") ?: ""
 
+    // Short-lived correlation id for an in-progress signup/reset flow. Kept
+    // here (encrypted) instead of a plain SharedPreferences file so it
+    // survives process death the same way, without sitting in cleartext.
+    fun savePendingRegistrationId(id: String) {
+        prefs.edit().putString("pending_registration_id", id).apply()
+    }
+
+    fun getPendingRegistrationId(): String? = prefs.getString("pending_registration_id", null)
+
+    fun clearPendingRegistrationId() {
+        prefs.edit().remove("pending_registration_id").apply()
+    }
+
     // 2. Update clear() to emit the signal
     fun clear() {
         prefs.edit().clear().apply()

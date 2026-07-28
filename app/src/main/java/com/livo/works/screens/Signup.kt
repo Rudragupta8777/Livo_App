@@ -130,7 +130,7 @@ class Signup : AppCompatActivity() {
             }
 
             if (isValid) {
-                Log.d("AUTH_DEBUG", "Signup -> Initiate Clicked. Email: $email")
+                Log.d("AUTH_DEBUG", "Signup -> Initiate Clicked")
                 animateButtonClick(btnSignup)
                 viewModel.initiateSignup(name, email, pass)
             } else {
@@ -160,7 +160,7 @@ class Signup : AppCompatActivity() {
 
                     is UiState.Success -> {
                         showLoading(false)
-                        Log.d("AUTH_DEBUG", "Signup -> API Success! RegID received: ${state.data?.registrationId}")
+                        Log.d("AUTH_DEBUG", "Signup -> API Success! RegID received")
 
                         animateSuccess {
                             val response = state.data
